@@ -1,0 +1,36 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  mac:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mac/JBLControl
+    env:
+      # Personal values are never in the repo. Set them under Settings > Secrets and variables > Actions.
+      JBL_SIGN_IDENTITY: ${{ vars.JBL_SIGN_IDENTITY }}
+      JBL_BUNDLE_ID: ${{ vars.JBL_BUNDLE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replay tests
+        run: swift test
+      - name: Import signing certificate (skipped without secrets)
+        env:
+          JBL_CERT_P12_BASE64: ${{ secrets.JBL_CERT_P12_BASE64 }}
+          JBL_CERT_PASSWORD: ${{ secrets.JBL_CERT_PASSWORD }}
+        run: scripts/ci-import-cert.sh
+      - name: Build
+        run: |
+          # Signed with your certificate when the secrets exist, ad-hoc otherwise.
+          if [ -n "$JBL_KEYCHAIN" ]; then make zip; else ALLOW_UNSTABLE_SIGN=1 make zip; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JBLControl
+          path: mac/JBLControl/build/*.zip
+          retention-days: 14

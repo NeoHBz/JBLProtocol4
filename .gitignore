@@ -25,3 +25,8 @@ handoff.md
 __pycache__/
 .pytest_cache/
 .DS_Store
+
+# Mac app local build config and keys
+mac/JBLControl/local.mk
+*.p12
+*.pem
