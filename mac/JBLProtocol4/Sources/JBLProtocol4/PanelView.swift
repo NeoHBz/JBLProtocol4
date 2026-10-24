@@ -98,7 +98,8 @@ struct PanelView: View {
     }
 
     @ViewBuilder private var moreRows: some View {
-        SwitchRow(title: "Balance", isOn: d.balanceOn) { d.setBalance(d.balance, on: $0) }
+        // Off also centres it: the slider has no marks, so an off-centre value kept from before would be hard to read later.
+        SwitchRow(title: "Balance", isOn: d.balanceOn) { d.setBalance($0 ? d.balance : 0, on: $0) }
             .disabled(!live)
         if d.balanceOn {
             HStack {
