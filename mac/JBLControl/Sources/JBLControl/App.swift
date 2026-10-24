@@ -11,36 +11,26 @@ struct JBLControlApp: App {
     }
 }
 
-/// Borderless window that can take keyboard focus (Tab, arrows) and closes on Esc.
-final class PanelWindow: NSPanel {
-    var onEscape: (() -> Void)?
-    override var canBecomeKey: Bool { true }
-    override func cancelOperation(_ sender: Any?) { onEscape?() }
-}
-
-/// Owns the menu bar item and its panel. Not MenuBarExtra (its panel closes itself when the icon is clicked, then the
-/// same click reopens it) and not NSPopover (it resizes badly when "More settings" folds). The panel is a plain window
-/// whose top edge stays under the icon while its height follows the content.
+/// Menu bar icon plus the A1 panel. Click the icon to open, click it again (or anywhere else, or press Esc) to close.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let device = Device()
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private var panel: PanelWindow?
+    private var panel: Panel?
     private var outsideClick: Any?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        if let button = item.button {
-            button.image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "JBL Control")
-            button.imagePosition = .imageLeading
-            button.target = self
-            button.action = #selector(toggle)
-        }
+        guard let button = item.button else { return }
+        button.image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "JBL Control")
+        button.imagePosition = .imageLeading
+        button.target = self
+        button.action = #selector(toggle)
+
         Publishers.CombineLatest(device.$link, device.$battery)
             .receive(on: RunLoop.main)
-            .sink { [weak self] link, battery in
-                guard let button = self?.item.button else { return }
-                button.title = (link == .ready ? battery.map { " \($0)%" } : nil) ?? ""
+            .sink { [weak button] link, battery in
+                button?.title = (link == .ready ? battery.map { " \($0)%" } : nil) ?? ""
             }
             .store(in: &cancellables)
     }
@@ -50,79 +40,106 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func open() {
-        // A fresh panel each time, so "More settings" always starts collapsed.
-        let host = NSHostingController(rootView: PanelView(onHeight: { [weak self] h in
-            MainActor.assumeIsolated { self?.resize(height: h) }   // same frame as the layout change, no hop
-        }).environmentObject(device))
-        host.sizingOptions = []
-        let size = host.sizeThatFits(in: NSSize(width: 320, height: 0))   // zero height: the panel answers with its natural height
-        host.view.frame.size = size
+        let icon = iconFrame()
+        let screen = item.button?.window?.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        let right = min(max(icon.maxX, screen.minX + Theme.width + 6), screen.maxX - 6)
+        let p = Panel(device: device, topRight: NSPoint(x: right, y: icon.minY - 4))
+        p.onEscape = { [weak self] in self?.close() }
+        panel = p
+        p.makeKeyAndOrderFront(nil)
+        // Nothing focused at first; the first Tab lands on the noise control.
+        DispatchQueue.main.async { p.makeFirstResponder(nil) }
 
-        let background = NSVisualEffectView()
-        background.material = .popover
-        background.state = .active
-        background.wantsLayer = true
-        background.layer?.cornerRadius = 12
-        background.layer?.masksToBounds = true
-        host.view.translatesAutoresizingMaskIntoConstraints = false
-        background.addSubview(host.view)
-        NSLayoutConstraint.activate([
-            host.view.topAnchor.constraint(equalTo: background.topAnchor),
-            host.view.leadingAnchor.constraint(equalTo: background.leadingAnchor),
-            host.view.trailingAnchor.constraint(equalTo: background.trailingAnchor),
-            host.view.bottomAnchor.constraint(equalTo: background.bottomAnchor),
-        ])
-
-        let w = PanelWindow(contentRect: NSRect(origin: .zero, size: size),
-                            styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
-        w.contentView = background
-        w.isOpaque = false
-        w.backgroundColor = .clear
-        w.hasShadow = true
-        w.level = .popUpMenu
-        w.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        w.onEscape = { [weak self] in self?.close() }
-        panel = w
-
-        place(w, size: size)
-        w.makeKeyAndOrderFront(nil)
-        // Start with nothing focused; the first Tab then lands on the first control (ANC).
-        DispatchQueue.main.async { w.makeFirstResponder(nil) }
-
-        // The menu bar icon is drawn by the system, so its clicks look like "another app" too: skip them here and let toggle() close.
+        // The status icon belongs to a system process, so a click on it also arrives here; leave that one to toggle().
         outsideClick = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, !self.iconContains(NSEvent.mouseLocation) else { return }
+            MainActor.assumeIsolated {
+                guard let self, !self.iconFrame().insetBy(dx: -4, dy: -4).contains(NSEvent.mouseLocation) else { return }
                 self.close()
             }
         }
     }
 
-    /// Top edge just under the icon, right edge level with the icon's right edge, kept on screen.
-    private func place(_ w: NSWindow, size: NSSize) {
-        guard let b = item.button, let bw = b.window else { return }
-        let icon = bw.convertToScreen(b.convert(b.bounds, to: nil))
-        let screen = bw.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
-        let x = min(max(icon.maxX - size.width, screen.minX + 6), screen.maxX - size.width - 6)
-        let top = icon.minY - 4
-        w.setFrame(NSRect(x: x, y: top - size.height, width: size.width, height: size.height), display: true, animate: false)
-    }
-
-    private func resize(height: CGFloat) {
-        guard let w = panel, height > 0, abs(w.frame.height - height) > 0.5 else { return }
-        // Keep the top-right corner where it is; only the bottom edge moves.
-        let f = w.frame
-        w.setFrame(NSRect(x: f.minX, y: f.maxY - height, width: f.width, height: height), display: true, animate: false)
-    }
-
-    private func iconContains(_ p: NSPoint) -> Bool {
-        guard let b = item.button, let w = b.window else { return false }
-        return w.convertToScreen(b.convert(b.bounds, to: nil)).insetBy(dx: -4, dy: -4).contains(p)
-    }
-
     private func close() {
         panel?.orderOut(nil)
         panel = nil
-        if let m = outsideClick { NSEvent.removeMonitor(m); outsideClick = nil }
+        if let m = outsideClick { NSEvent.removeMonitor(m) }
+        outsideClick = nil
+    }
+
+    private func iconFrame() -> NSRect {
+        guard let b = item.button, let w = b.window else { return .zero }
+        return w.convertToScreen(b.convert(b.bounds, to: nil))
+    }
+}
+
+/// Borderless panel hanging from a fixed top-right corner.
+///
+/// How it avoids jumping when "More settings" folds: the SwiftUI view lives in a tall canvas pinned to the top of a
+/// clipping card. The window only changes how much of that canvas shows, so the content never moves; at worst, for
+/// one frame, the bottom edge is a little short or long.
+final class Panel: NSPanel {
+    var onEscape: (() -> Void)?
+    private let topRight: NSPoint
+    private var card: NSView!
+    private var canvas: NSView!
+    private static let canvasHeight: CGFloat = 2000
+
+    init(device: Device, topRight: NSPoint) {
+        self.topRight = topRight
+        super.init(contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        isOpaque = false
+        backgroundColor = .clear
+        hasShadow = true
+        level = .popUpMenu
+        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+
+        // Natural height of the collapsed panel, so the first frame on screen is already the right size.
+        let startHeight = NSHostingView(rootView: PanelView().environmentObject(device)).fittingSize.height
+
+        let card = NSView(frame: NSRect(x: 0, y: 0, width: Theme.width, height: startHeight))
+        card.wantsLayer = true
+        card.layer?.cornerRadius = Theme.corner
+        card.layer?.masksToBounds = true
+        card.layer?.borderWidth = 1
+
+        var setHeight: (CGFloat) -> Void = { _ in }
+        let canvas = NSHostingView(rootView:
+            PanelView(onHeight: { setHeight($0) })
+                .environmentObject(device)
+                .frame(width: Theme.width, height: Self.canvasHeight, alignment: .top)
+                .background(Theme.pop)
+        )
+        canvas.sizingOptions = []
+        canvas.frame = NSRect(x: 0, y: card.bounds.height - Self.canvasHeight, width: Theme.width, height: Self.canvasHeight)
+        card.addSubview(canvas)
+        contentView = card
+        self.card = card
+        self.canvas = canvas
+
+        setFrame(NSRect(x: topRight.x - Theme.width, y: topRight.y - startHeight, width: Theme.width, height: startHeight), display: false)
+        // The height arrives in the middle of SwiftUI's layout pass; resizing there makes AppKit move the window now and
+        // its contents later. Resize right after the pass instead, window and contents together.
+        setHeight = { [weak self] h in DispatchQueue.main.async { self?.fit(height: h) } }
+        updateBorder()
+    }
+
+    override var canBecomeKey: Bool { true }
+    override func cancelOperation(_ sender: Any?) { onEscape?() }
+
+    private func updateBorder() {
+        contentView?.layer?.borderColor = NSColor(Theme.line).cgColor
+    }
+
+    /// Resize to `height`, keeping the top-right corner fixed.
+    private func fit(height: CGFloat) {
+        guard height > 0, abs(frame.height - height) > 0.5 else { return }
+        NSAnimationContext.runAnimationGroup { ctx in
+            ctx.duration = 0
+            ctx.allowsImplicitAnimation = false
+            setFrame(NSRect(x: topRight.x - Theme.width, y: topRight.y - height, width: Theme.width, height: height), display: false)
+            card.frame = NSRect(x: 0, y: 0, width: Theme.width, height: height)
+            canvas.frame.origin.y = height - Self.canvasHeight   // canvas top = card top
+            card.display()
+        }
     }
 }
