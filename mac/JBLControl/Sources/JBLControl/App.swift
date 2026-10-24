@@ -98,7 +98,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Top edge just under the icon, right edge level with the icon's right edge, kept on screen; the top never moves when the height changes.
+    /// Top edge just under the icon, right edge level with the icon's right edge, kept on screen.
     private func place(_ w: NSWindow, size: NSSize) {
         guard let b = item.button, let bw = b.window else { return }
         let icon = bw.convertToScreen(b.convert(b.bounds, to: nil))
@@ -110,7 +110,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func resize(height: CGFloat) {
         guard let w = panel, height > 0, abs(w.frame.height - height) > 0.5 else { return }
-        place(w, size: NSSize(width: 320, height: height))
+        // Keep the top-right corner where it is; only the bottom edge moves.
+        let f = w.frame
+        w.setFrame(NSRect(x: f.minX, y: f.maxY - height, width: f.width, height: height), display: true, animate: false)
     }
 
     private func iconContains(_ p: NSPoint) -> Bool {

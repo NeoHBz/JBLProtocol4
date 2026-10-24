@@ -29,8 +29,7 @@ struct PanelView: View {
         .disabled(false)
         .opacity(d.link == .poweredOff ? 0.6 : 1)
         .fixedSize(horizontal: false, vertical: true)
-        .background(GeometryReader { Color.clear.preference(key: HeightKey.self, value: $0.size.height) })
-        .onPreferenceChange(HeightKey.self) { onHeight($0) }
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.height }, action: { onHeight($0) })
     }
 
     private var header: some View {
@@ -163,11 +162,6 @@ struct BatteryGlyph: View {
                 .frame(width: max(2, 38 * CGFloat(percent) / 100), height: 7).padding(.leading, 3)
         }
     }
-}
-
-private struct HeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 enum Theme {
