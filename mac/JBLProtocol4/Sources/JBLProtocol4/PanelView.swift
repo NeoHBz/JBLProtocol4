@@ -138,6 +138,9 @@ struct PanelView: View {
             .help("Put back the settings the headphones had when this app opened")
         Button("Quit JBL Protocol4") { NSApp.terminate(nil) }
             .buttonStyle(OutlineButtonStyle()).keyboardShortcut("q")
+        Text("Unofficial app. Not affiliated with or endorsed by JBL or Harman.")
+            .font(.system(size: 10)).foregroundStyle(Theme.mute)
+            .frame(maxWidth: .infinity).multilineTextAlignment(.center)
     }
 
     private var footer: some View {

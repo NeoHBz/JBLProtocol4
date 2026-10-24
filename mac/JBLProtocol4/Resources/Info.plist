@@ -10,6 +10,7 @@
     <key>CFBundleVersion</key><string>1</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
+    <key>NSHumanReadableCopyright</key><string>© 2026 NeoHBz. Unofficial app, not affiliated with or endorsed by JBL, Harman International or Samsung. JBL is a trademark of its owner.</string>
     <key>NSBluetoothAlwaysUsageDescription</key><string>JBL Protocol4 talks to your JBL headphones over Bluetooth to show battery and change noise control and sound settings.</string>
 </dict>
 </plist>
