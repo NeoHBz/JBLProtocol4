@@ -7,11 +7,14 @@ import pytest
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import jbl_proto as p  # noqa: E402
 
-FIXTURE = os.path.join(os.path.dirname(__file__), "..", "fixtures", "gatt.tsv")
+_FIX = os.path.join(os.path.dirname(__file__), "..", "fixtures")
+FIXTURE = os.environ.get("JBL_FIXTURE") or next(
+    (f for f in (os.path.join(_FIX, "gatt.tsv"), os.path.join(_FIX, "gatt.public.tsv")) if os.path.exists(f)),
+    os.path.join(_FIX, "gatt.tsv"))
 ACK = bytes.fromhex("00dd0200010002000000")
 
 if not os.path.exists(FIXTURE):
-    pytest.skip("capture fixture not published (it holds device identifiers); supply your own, see README", allow_module_level=True)
+    pytest.skip("no capture fixture found; supply your own (see README)", allow_module_level=True)
 
 
 def load():

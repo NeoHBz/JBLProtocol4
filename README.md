@@ -14,7 +14,8 @@ Not affiliated with or endorsed by JBL or Harman. Use at your own risk; you are 
 
 ## What is deliberately not here
 - The app (APK) and anything decompiled from it.
-- Raw captures and the table derived from them: they contain device serials, addresses and phone identifiers. `proto/tests` skip themselves if `proto/fixtures/gatt.tsv` is absent; produce your own with `analysis/dump_gatt.sh` from your own HCI snoop log.
+- Raw captures and the full table derived from them: they contain device serials, addresses and phone identifiers.
+- `proto/fixtures/gatt.public.tsv` is a redacted command-channel-only fixture (serial, address, clock-sync and host-name hash zeroed, timestamps replaced). It is built by `analysis/redact_fixture.py` from a private table, which you can produce for your own device with `analysis/dump_gatt.sh` and your own HCI snoop log. `proto/tests` use `gatt.tsv` if present, else the public fixture.
 
 ## Safety
 Do not send firmware-update, factory-reset or unverified commands. The spec lists the off-limits tags. Every write in `mac/` replays a frame that was first seen in a real capture.

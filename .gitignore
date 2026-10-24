@@ -12,6 +12,9 @@ captures/
 *.log
 mac/probe-log.txt
 
+# Local audit output
+audit/
+
 # Local environment and the author's private brief
 mac/.venv/
 handoff.md
