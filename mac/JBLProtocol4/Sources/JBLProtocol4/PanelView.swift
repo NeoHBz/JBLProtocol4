@@ -133,6 +133,15 @@ struct PanelView: View {
         .available(has(.autoOff), live: live, model: d.productID)
         SwitchRow(title: "Voice prompts", isOn: d.voicePrompts) { d.setVoicePrompts($0) }
             .available(has(.voicePrompts), live: live, model: d.productID)
+        Divider().overlay(Theme.line)
+        // App settings: they work while disconnected too.
+        SwitchRow(title: "Keep always connected", isOn: d.keepConnected) { d.keepConnected = $0 }
+        Text(d.keepConnected
+             ? "The headphones accept one controller at a time. While this is on, the JBL Headphones app on your phone cannot connect. Turn it off or quit this app first."
+             : "Connects when you open this panel and lets go 10 seconds after you close it, so the JBL Headphones app on your phone can connect.")
+            .font(.system(size: 10.5)).foregroundStyle(d.keepConnected ? Theme.accent : Theme.mute)
+            .fixedSize(horizontal: false, vertical: true)
+        SwitchRow(title: "Battery % in menu bar", isOn: d.showPercent) { d.showPercent = $0 }
         Button("Undo changes since app opened") { d.restoreLaunchState() }
             .buttonStyle(OutlineButtonStyle()).disabled(!d.canRestore)
             .help("Put back the settings the headphones had when this app opened")

@@ -31,10 +31,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         button.target = self
         button.action = #selector(toggle)
 
-        Publishers.CombineLatest(device.$link, device.$battery)
+        // While released for the phone, the last reading stays up; it is minutes old at most when the panel was in use.
+        Publishers.CombineLatest3(device.$link, device.$battery, device.$showPercent)
             .receive(on: RunLoop.main)
-            .sink { [weak button] link, battery in
-                button?.title = (link == .ready ? battery.map { " \($0)%" } : nil) ?? ""
+            .sink { [weak button] link, battery, show in
+                let live = link == .ready || link == .released
+                button?.title = (show && live ? battery.map { " \($0)%" } : nil) ?? ""
             }
             .store(in: &cancellables)
     }
@@ -51,6 +53,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let p = Panel(device: device, topRight: NSPoint(x: right, y: icon.minY - 4))
         p.onEscape = { [weak self] in self?.close() }
         panel = p
+        device.panelOpened()
         p.makeKeyAndOrderFront(nil)
         // Nothing focused at first; the first Tab lands on the noise control.
         DispatchQueue.main.async { p.makeFirstResponder(nil) }
@@ -65,8 +68,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func close() {
-        panel?.orderOut(nil)
+        guard let p = panel else { return }
+        p.orderOut(nil)
         panel = nil
+        device.panelClosed()
         if let m = outsideClick { NSEvent.removeMonitor(m) }
         outsideClick = nil
     }

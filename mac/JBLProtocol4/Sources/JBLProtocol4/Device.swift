@@ -3,7 +3,8 @@ import Foundation
 import JBLKit
 
 enum LinkState: Equatable {
-    case bluetoothOff, unauthorized, searching, connecting, handshaking, ready, poweredOff
+    /// `released`: the app let go of the link on purpose (panel closed, "Keep always connected" off).
+    case bluetoothOff, unauthorized, searching, connecting, handshaking, ready, poweredOff, released
     var text: String {
         switch self {
         case .bluetoothOff: return "Bluetooth is off"
@@ -11,7 +12,7 @@ enum LinkState: Equatable {
         case .searching: return "Searching for headphones"
         case .connecting, .handshaking: return "Connecting"
         case .ready: return "Connected over Bluetooth LE"
-        case .poweredOff: return "Not connected"
+        case .poweredOff, .released: return "Not connected"
         }
     }
 }
@@ -38,6 +39,16 @@ final class Device: NSObject, ObservableObject {
         didSet { UserDefaults.standard.set(colorID, forKey: "colorID") }
     }
 
+    /// Hold the control link while the panel is closed. The headphones take one control host at a time, so while this
+    /// app holds it the JBL Headphones app on a phone cannot connect. Off: connect when the panel opens, let go after it closes.
+    @Published var keepConnected = UserDefaults.standard.bool(forKey: "keepConnected") {
+        didSet { UserDefaults.standard.set(keepConnected, forKey: "keepConnected"); linkWantedChanged() }
+    }
+    /// Battery percent next to the menu bar icon.
+    @Published var showPercent = UserDefaults.standard.object(forKey: "showPercent") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(showPercent, forKey: "showPercent") }
+    }
+
     private nonisolated let serviceUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0000")
     private nonisolated let writeUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0002")
     private nonisolated let notifyUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0001")
@@ -52,6 +63,11 @@ final class Device: NSObject, ObservableObject {
     private var notifyChar: CBCharacteristic?
     private var pollTimer: Timer?
     private var intentionalPowerOff = false
+    private var panelOpen = false
+    private var releaseWork: DispatchWorkItem?
+    /// Seconds the link stays up after the panel closes, so a quick reopen or a pending read-back does not rebuild it.
+    private let releaseDelay = 10.0
+    private var linkWanted: Bool { keepConnected || panelOpen }
     /// Raw values the device reported at the first full read of this app run, for "Undo changes since app opened".
     private var launch: [UInt16: Data] = [:]
     private var current: [UInt16: Data] = [:]
@@ -76,6 +92,9 @@ final class Device: NSObject, ObservableObject {
         intentionalPowerOff = true
         send(Commands.powerOff, reread: [])
     }
+
+    func panelOpened() { panelOpen = true; linkWantedChanged() }
+    func panelClosed() { panelOpen = false; linkWantedChanged() }
 
     var canRestore: Bool { link == .ready && !launch.isEmpty }
 
@@ -160,8 +179,28 @@ final class Device: NSObject, ObservableObject {
         }
     }
 
+    private func linkWantedChanged() {
+        releaseWork?.cancel()
+        if linkWanted {
+            if link == .released || link == .poweredOff { startScan() }
+            return
+        }
+        let w = DispatchWorkItem { [weak self] in self?.release() }
+        releaseWork = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + releaseDelay, execute: w)
+    }
+
+    /// Lets go of the link so a phone can take it. Keeps the last battery reading and the launch state.
+    private func release() {
+        guard !linkWanted, central.state == .poweredOn else { return }
+        central.stopScan()
+        link = .released
+        if let p = peripheral { central.cancelPeripheralConnection(p) }
+    }
+
     private func startScan() {
         guard central.state == .poweredOn else { return }
+        guard linkWanted else { link = .released; return }
         link = .searching
         if let id = UserDefaults.standard.string(forKey: "peripheralID").flatMap(UUID.init),
            let known = central.retrievePeripherals(withIdentifiers: [id]).first {
@@ -199,6 +238,7 @@ extension Device: CBCentralManagerDelegate {
 
     nonisolated func centralManager(_ c: CBCentralManager, didConnect p: CBPeripheral) {
         MainActor.assumeIsolated {
+            guard link != .released else { c.cancelPeripheralConnection(p); return }
             UserDefaults.standard.set(p.identifier.uuidString, forKey: "peripheralID")
             p.discoverServices([serviceUUID])
         }
@@ -212,6 +252,7 @@ extension Device: CBCentralManagerDelegate {
         MainActor.assumeIsolated {
             pollTimer?.invalidate()
             writeChar = nil; notifyChar = nil
+            if link == .released { return }
             if intentionalPowerOff { link = .poweredOff; intentionalPowerOff = false; battery = nil; launch = [:]; current = [:]; return }
             battery = nil; launch = [:]; current = [:]
             retryLater()
