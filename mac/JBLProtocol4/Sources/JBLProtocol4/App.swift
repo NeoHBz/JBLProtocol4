@@ -2,12 +2,16 @@ import SwiftUI
 import Combine
 import JBLKit
 
+/// Plain AppKit entry point. A SwiftUI `App` needs at least one scene, and recent macOS opens even an empty
+/// `Settings` scene as a blank window; a menu bar app has no window, so it skips the SwiftUI lifecycle entirely.
 @main
-struct JBLProtocol4App: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
-
-    var body: some Scene {
-        Settings { EmptyView() }
+enum JBLProtocol4App {
+    static func main() {
+        let app = NSApplication.shared
+        let delegate = AppDelegate()
+        app.delegate = delegate
+        app.setActivationPolicy(.accessory)
+        withExtendedLifetime(delegate) { app.run() }
     }
 }
 
