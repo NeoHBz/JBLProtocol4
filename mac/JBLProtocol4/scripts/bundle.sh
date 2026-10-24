@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Usage: bundle.sh <debug|release> <out.app>. Builds the package and assembles an unsigned menu bar .app.
+#   JBL_UNIVERSAL=1  build one binary for Apple Silicon and Intel (release downloads)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CONFIG="${1:?debug|release}"; APP="${2:?output .app path}"
-swift build -c "$CONFIG" 2>&1 | grep -E "error:|warning:|Compiling|Build complete" | tail -5
-BIN="$(swift build -c "$CONFIG" --show-bin-path)/JBLProtocol4"
+ARCH=(); [ "${JBL_UNIVERSAL:-0}" = "1" ] && ARCH=(--arch arm64 --arch x86_64)
+swift build -c "$CONFIG" ${ARCH[@]+"${ARCH[@]}"} 2>&1 | grep -E "error:|warning:|Compiling|Build complete" | tail -5
+BIN="$(swift build -c "$CONFIG" ${ARCH[@]+"${ARCH[@]}"} --show-bin-path)/JBLProtocol4"
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
 cp "$BIN" "$APP/Contents/MacOS/JBLProtocol4"
 cp Resources/Info.plist "$APP/Contents/Info.plist"

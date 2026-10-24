@@ -1,13 +1,14 @@
 # JBL Protocol4
 
 Menu bar app for JBL Protocol4 headphones (layout "A1"). It connects to any model in the family (`notes/protocol.md`
-section 11) but is only tested on the Tune 780NC; other models show every 780NC control whether they support it or not. Swift package, built with `make`, no Xcode project.
+section 11) but is only tested on the Tune 780NC; controls the connected model does not have are greyed out. Swift package, built with `make`, no Xcode project.
 
     cd mac/JBLProtocol4
     make cert        # once: creates a self-signed signing certificate in your keychain (no Apple account)
     make             # build Debug, sign, relaunch
     make test        # replays captured frames byte for byte
     make install     # signed Release build into /Applications
+    make dmg         # signed Release build as build/JBLProtocol4-<version>.dmg (JBL_UNIVERSAL=1 for Apple Silicon + Intel)
     make help        # every target; chain them: make build:test:zip
 
 First launch: macOS asks whether JBL Protocol4 may use Bluetooth. Allow it. The headphones must already be bonded to this Mac.
@@ -30,5 +31,8 @@ headphones symbol. Live Beam 4 and Live Flex 4 have no photo in the app and alwa
 ad-hoc. To sign with your certificate, run `make cert-export` once and paste the three `gh` commands it prints. They store the
 certificate as the secrets `JBL_CERT_P12_BASE64` and `JBL_CERT_PASSWORD` and the name as the variable `JBL_SIGN_IDENTITY`.
 Pull requests from forks never see secrets, so they build ad-hoc.
+
+`.github/workflows/release.yml` runs when you push a tag like `v0.1.0`: tests, a universal build with `JBL_VERSION` taken
+from the tag, then a GitHub release with the DMG, the zip and `SHA256SUMS.txt`. It uses the same signing secrets when present.
 
 Only verified commands are built (`Sources/JBLKit/Protocol.swift`, `writableTags`). Left out on purpose: EQ, Smart Audio & Video, LE Audio, Auracast, button mapping.

@@ -9,6 +9,7 @@
 #   JBL_SIGN_IDENTITY   name of the signing certificate   (default: "JBL Control Dev Signing")
 #   JBL_BUNDLE_ID       bundle identifier                 (default: local.jblprotocol4)
 #   JBL_VERSION         shown in About and the zip name   (default: 0.1.0)
+#   JBL_UNIVERSAL       1 = one binary for Apple Silicon and Intel (release downloads)
 #
 # Locally, put overrides in mac/JBLProtocol4/local.mk (git-ignored, see local.mk.example) or in your shell profile.
 # On GitHub they come from Actions secrets/variables (.github/workflows/build.yml), and the signing certificate
@@ -34,7 +35,7 @@ INSTALLED := /Applications/$(APP_NAME).app
 SCRIPTS   := scripts
 
 .DEFAULT_GOAL := dev
-.PHONY: help dev run stop test build sign install zip cert cert-status cert-export clean
+.PHONY: help dev run stop test build sign install zip dmg cert cert-status cert-export clean
 
 # colon-chained goals: `make build:test` runs build, then test, stopping at the first failure.
 CHAINED := $(strip $(foreach g,$(MAKECMDGOALS),$(if $(findstring :,$(g)),$(g))))
@@ -98,6 +99,14 @@ install: build
 zip: build
 	@cd $(OUT)/Release && ditto -c -k --keepParent $(APP_NAME).app ../$(APP_NAME)-$(JBL_VERSION).zip
 	@echo "→ $(OUT)/$(APP_NAME)-$(JBL_VERSION).zip"
+
+## dmg — package the signed Release build into build/JBLProtocol4-<version>.dmg (drag to Applications)
+dmg: build
+	@rm -rf $(OUT)/dmg $(OUT)/$(APP_NAME)-$(JBL_VERSION).dmg && mkdir -p $(OUT)/dmg
+	@cp -R "$(REL_APP)" $(OUT)/dmg/ && ln -s /Applications $(OUT)/dmg/Applications
+	@hdiutil create -quiet -volname "JBL Protocol4" -srcfolder $(OUT)/dmg -fs HFS+ -format UDZO -ov $(OUT)/$(APP_NAME)-$(JBL_VERSION).dmg
+	@rm -rf $(OUT)/dmg
+	@echo "→ $(OUT)/$(APP_NAME)-$(JBL_VERSION).dmg"
 
 ## cert — create the signing certificate in your login keychain (once, no Apple account)
 cert:
