@@ -25,7 +25,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         popover.behavior = .applicationDefined
         popover.animates = false
-        popover.contentViewController = NSHostingController(rootView: PanelView().environmentObject(device))
 
         if let button = item.button {
             button.image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "JBL Control")
@@ -48,6 +47,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func open() {
         guard let button = item.button else { return }
+        // A fresh panel each time, so "More settings" always starts collapsed.
+        popover.contentViewController = NSHostingController(rootView: PanelView().environmentObject(device))
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         let window = popover.contentViewController?.view.window
         window?.makeKey()

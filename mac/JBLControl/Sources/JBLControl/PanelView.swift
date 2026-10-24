@@ -4,7 +4,7 @@ import JBLKit
 /// Layout A1 ("Fold-out"): everyday controls on top, rarely used ones behind "More settings", power off in the footer.
 struct PanelView: View {
     @EnvironmentObject var d: Device
-    @AppStorage("moreExpanded") private var more = false
+    @State private var more = false
     @State private var armed = false
     @State private var armTask: Task<Void, Never>?
     @State private var balanceDraft = 0.0
