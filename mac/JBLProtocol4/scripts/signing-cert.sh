@@ -46,7 +46,7 @@ cmd_preflight() {
 
 cmd_export() {
   have || die "Certificate \"$IDENTITY\" is not installed. Run: make cert"
-  out="${FILE:-$HOME/jblcontrol-signing.p12}"
+  out="${FILE:-$HOME/jblprotocol4-signing.p12}"
   pass="$(openssl rand -hex 12)"
   security export -k "$KEYCHAIN" -t identities -f pkcs12 -P "$pass" -o "$out" >/dev/null 2>&1 \
     || die "export failed (keychain may ask you to allow it)"

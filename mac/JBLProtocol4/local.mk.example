@@ -1,4 +1,4 @@
 # Copy to local.mk (git-ignored). Everything here is optional; the defaults work.
 # JBL_SIGN_IDENTITY = My Own Signing Name
-# JBL_BUNDLE_ID     = com.example.jblcontrol
+# JBL_BUNDLE_ID     = com.example.jblprotocol4
 # JBL_VERSION       = 0.1.0

@@ -107,8 +107,10 @@ struct SwitchRow: View {
     }
 }
 
-/// Full-width outlined button (Restore, Quit).
+/// Full-width outlined button (Undo, Quit). Dims like the switches when disabled.
 struct OutlineButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 11.5))
@@ -117,6 +119,7 @@ struct OutlineButtonStyle: ButtonStyle {
             .padding(.vertical, 7)
             .background(RoundedRectangle(cornerRadius: 8).fill(configuration.isPressed ? Theme.fill : .clear))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.line, lineWidth: 1))
+            .opacity(enabled ? 1 : 0.5)
             .contentShape(Rectangle())
     }
 }

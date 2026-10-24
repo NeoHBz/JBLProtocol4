@@ -11,7 +11,7 @@ jobs:
     runs-on: macos-latest
     defaults:
       run:
-        working-directory: mac/JBLControl
+        working-directory: mac/JBLProtocol4
     env:
       # Personal values are never in the repo. Set them under Settings > Secrets and variables > Actions.
       JBL_SIGN_IDENTITY: ${{ vars.JBL_SIGN_IDENTITY }}
@@ -31,6 +31,6 @@ jobs:
           if [ -n "$JBL_KEYCHAIN" ]; then make zip; else ALLOW_UNSTABLE_SIGN=1 make zip; fi
       - uses: actions/upload-artifact@v4
         with:
-          name: JBLControl
-          path: mac/JBLControl/build/*.zip
+          name: JBLProtocol4
+          path: mac/JBLProtocol4/build/*.zip
           retention-days: 14

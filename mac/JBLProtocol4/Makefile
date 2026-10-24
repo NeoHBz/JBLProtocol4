@@ -1,4 +1,4 @@
-# JBL Control: local build, test, sign, install. Same targets run locally and in GitHub Actions.
+# JBL Protocol4: local build, test, sign, install. Same targets run locally and in GitHub Actions.
 #
 #   make                    build Debug, sign, relaunch  (the inner loop)
 #   make help               every target
@@ -7,10 +7,10 @@
 # NOTHING PERSONAL LIVES IN THIS FILE OR IN THE REPO. Anything that is yours comes from the environment:
 #
 #   JBL_SIGN_IDENTITY   name of the signing certificate   (default: "JBL Control Dev Signing")
-#   JBL_BUNDLE_ID       bundle identifier                 (default: local.jblcontrol)
+#   JBL_BUNDLE_ID       bundle identifier                 (default: local.jblprotocol4)
 #   JBL_VERSION         shown in About and the zip name   (default: 0.1.0)
 #
-# Locally, put overrides in mac/JBLControl/local.mk (git-ignored, see local.mk.example) or in your shell profile.
+# Locally, put overrides in mac/JBLProtocol4/local.mk (git-ignored, see local.mk.example) or in your shell profile.
 # On GitHub they come from Actions secrets/variables (.github/workflows/build.yml), and the signing certificate
 # itself arrives as the secret JBL_CERT_P12_BASE64. With no secrets the workflow still builds, signed ad-hoc.
 #
@@ -20,10 +20,10 @@
 
 -include local.mk
 
-APP_NAME      := JBLControl
+APP_NAME      := JBLProtocol4
 # `$(or ...)` instead of `?=`: GitHub Actions passes an unset variable as an EMPTY string, which `?=` would keep.
 JBL_SIGN_IDENTITY := $(or $(JBL_SIGN_IDENTITY),JBL Control Dev Signing)
-JBL_BUNDLE_ID     := $(or $(JBL_BUNDLE_ID),local.jblcontrol)
+JBL_BUNDLE_ID     := $(or $(JBL_BUNDLE_ID),local.jblprotocol4)
 JBL_VERSION       := $(or $(JBL_VERSION),0.1.0)
 export JBL_SIGN_IDENTITY JBL_BUNDLE_ID JBL_VERSION
 
@@ -46,7 +46,7 @@ endif
 
 ## help — list every target
 help:
-	@echo "JBL Control"; echo ""
+	@echo "JBL Protocol4"; echo ""
 	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/^## /  /'
 	@echo ""; echo "  Signed with:  $(JBL_SIGN_IDENTITY)"
 	@printf '  Status:       '
@@ -86,7 +86,7 @@ build:
 sign:
 	@JBL_STRICT_SIGN=1 $(SCRIPTS)/sign-app.sh "$(REL_APP)"
 
-## install — replace /Applications/JBLControl.app with a fresh signed Release build
+## install — replace /Applications/JBLProtocol4.app with a fresh signed Release build
 install: build
 	@$(MAKE) --no-print-directory stop
 	@rm -rf "$(INSTALLED)"
@@ -94,7 +94,7 @@ install: build
 	@open "$(INSTALLED)"
 	@echo "→ Installed to $(INSTALLED) and launched."
 
-## zip — package the signed Release build into build/JBLControl-<version>.zip
+## zip — package the signed Release build into build/JBLProtocol4-<version>.zip
 zip: build
 	@cd $(OUT)/Release && ditto -c -k --keepParent $(APP_NAME).app ../$(APP_NAME)-$(JBL_VERSION).zip
 	@echo "→ $(OUT)/$(APP_NAME)-$(JBL_VERSION).zip"

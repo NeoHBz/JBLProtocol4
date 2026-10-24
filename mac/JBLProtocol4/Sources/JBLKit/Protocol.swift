@@ -162,7 +162,7 @@ public enum Commands {
     public static func voicePrompts(_ on: Bool) -> Data {
         try! buildSet([TLV(Tag.voicePrompt, byte: sl1(on: on, level: 0x7F)), TLV(Tag.voicePromptLang, byte: 0x01)])
     }
-    /// Writes values back exactly as the device reported them (used by "Restore launch state").
+    /// Writes values back exactly as the device reported them (used by "Undo changes since app opened").
     public static func raw(_ tlvs: [TLV]) throws -> Data { try buildSet(tlvs) }
 }
 

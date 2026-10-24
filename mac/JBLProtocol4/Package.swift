@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "JBLControl",
+    name: "JBLProtocol4",
     platforms: [.macOS(.v14)],
     targets: [
         .target(name: "JBLKit"),
-        .executableTarget(name: "JBLControl", dependencies: ["JBLKit"]),
+        .executableTarget(name: "JBLProtocol4", dependencies: ["JBLKit"]),
         .testTarget(name: "JBLKitTests", dependencies: ["JBLKit"]),
     ]
 )

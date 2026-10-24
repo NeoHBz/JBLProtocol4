@@ -3,7 +3,7 @@ import Combine
 import JBLKit
 
 @main
-struct JBLControlApp: App {
+struct JBLProtocol4App: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
 
     var body: some Scene {
@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let button = item.button else { return }
-        button.image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "JBL Control")
+        button.image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "JBL Protocol4")
         button.imagePosition = .imageLeading
         button.target = self
         button.action = #selector(toggle)

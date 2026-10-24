@@ -106,9 +106,10 @@ struct PanelView: View {
         .disabled(!live)
         SwitchRow(title: "Voice prompts", isOn: d.voicePrompts) { d.setVoicePrompts($0) }
             .disabled(!live)
-        Button("Restore launch state") { d.restoreLaunchState() }
+        Button("Undo changes since app opened") { d.restoreLaunchState() }
             .buttonStyle(OutlineButtonStyle()).disabled(!d.canRestore)
-        Button("Quit JBL Control") { NSApp.terminate(nil) }
+            .help("Put back the settings the headphones had when this app opened")
+        Button("Quit JBL Protocol4") { NSApp.terminate(nil) }
             .buttonStyle(OutlineButtonStyle()).keyboardShortcut("q")
     }
 

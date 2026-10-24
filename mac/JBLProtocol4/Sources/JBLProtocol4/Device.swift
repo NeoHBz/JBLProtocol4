@@ -11,7 +11,7 @@ enum LinkState: Equatable {
         case .searching: return "Searching for headphones"
         case .connecting, .handshaking: return "Connecting"
         case .ready: return "Connected over Bluetooth LE"
-        case .poweredOff: return "Powered off"
+        case .poweredOff: return "Not connected"
         }
     }
 }
@@ -42,7 +42,7 @@ final class Device: NSObject, ObservableObject {
     private var notifyChar: CBCharacteristic?
     private var pollTimer: Timer?
     private var intentionalPowerOff = false
-    /// Raw values the device reported at the first full read of this app run, for "Restore launch state".
+    /// Raw values the device reported at the first full read of this app run, for "Undo changes since app opened".
     private var launch: [UInt16: Data] = [:]
     private var current: [UInt16: Data] = [:]
     private let stateTags: [UInt16] = [Tag.battery, Tag.anc, Tag.ambient, Tag.talkThru, Tag.voiceAware, Tag.balance,

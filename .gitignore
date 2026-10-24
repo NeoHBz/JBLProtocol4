@@ -27,7 +27,7 @@ __pycache__/
 .DS_Store
 
 # Mac app local build config and keys
-mac/JBLControl/local.mk
+mac/JBLProtocol4/local.mk
 *.p12
 *.pem
 

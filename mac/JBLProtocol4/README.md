@@ -1,15 +1,15 @@
-# JBLControl
+# JBL Protocol4
 
 Menu bar app for the JBL Tune 780NC (layout "A1"). Swift package, built with `make`, no Xcode project.
 
-    cd mac/JBLControl
+    cd mac/JBLProtocol4
     make cert        # once: creates a self-signed signing certificate in your keychain (no Apple account)
     make             # build Debug, sign, relaunch
     make test        # replays captured frames byte for byte
     make install     # signed Release build into /Applications
     make help        # every target; chain them: make build:test:zip
 
-First launch: macOS asks whether JBL Control may use Bluetooth. Allow it. The headphones must already be bonded to this Mac.
+First launch: macOS asks whether JBL Protocol4 may use Bluetooth. Allow it. The headphones must already be bonded to this Mac.
 Remove: delete `build/`, the app in /Applications, and its entry in System Settings > Privacy & Security > Bluetooth.
 
 ## Keeping your details out of the repo
