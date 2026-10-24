@@ -27,6 +27,8 @@ It connects to any model in the [Device family](#device-family) and greys out co
 2. Open it and drag **JBLProtocol4** into **Applications**.
 3. Open the app and allow Bluetooth access when macOS asks. There is no window: the app lives in the menu bar.
 
+The headphones accept one control connection at a time: while this app is connected, the JBL Headphones app on your phone cannot connect (audio is unaffected). By default the app connects only while its panel is open and lets go 10 seconds after you close it. "Keep always connected" (under More settings, off by default) holds the connection all the time; turn it off or quit the app to use the phone app. "Battery % in menu bar" shows or hides the percent next to the icon.
+
 If it stays on "Not connected", close the JBL Headphones app on your phone and try again. If it still does not connect, remove the headphones in System Settings > Bluetooth and pair them again (see `notes/protocol.md`, open questions).
 
 **Update:** quit the app (More settings > Quit), install the new DMG and choose Replace.
