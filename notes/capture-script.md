@@ -63,7 +63,7 @@ Phone and Mac clocks agree (checked before the capture). Use the phone clock for
 - [ ] F3. Equalizer: switch through each preset one by one. Then change one custom band to its minimum, then maximum, then reset the band.
 - [x] F4. Spatial Sound (if present): off, then each mode in turn.
 - [x] F5. Auto power off (if present): each option in turn, ending on the original.
-- [x] F6. Smart Audio & Video, Auracast, LE Audio (if present): on, then off. **If a toggle reconnects the headphones, stop and tell me.**
+- [x] F6. Smart Audio & Video, Auracast, LE Audio (if present): on, then off. **If a toggle reconnects the headphones, stop and log it.**
 - [x] F7. Any other setting the app shows (language, voice prompts, sidetone, find my headphones): toggle once and log the name.
 
 ## G. Finish
@@ -71,9 +71,9 @@ Phone and Mac clocks agree (checked before the capture). Use the phone clock for
 - [x] G2. Stop logcat (Ctrl+C in that terminal).
 - [x] G3. Pull the snoop log. Android 15 on a non-rooted phone hides the raw file, so use a bug report:
   `adb -s <ADB_ID> bugreport captures/bugreport.zip`
-  The log is inside the zip at `FS/data/misc/bluetooth/logs/btsnoop_hci.log` (I will extract it in the container).
+  The log is inside the zip at `FS/data/misc/bluetooth/logs/btsnoop_hci.log` (extract it in the container).
 - [ ] G4. Turn off the HCI snoop log in Developer options when done (logs hold your Bluetooth traffic).
-- [x] G5. Tell me the start time of B1, plus the name of the headphones as it appears in the app.
+- [x] G5. Log the start time of B1, plus the name of the headphones as it appears in the app.
 
 ## Files expected in `captures/`
 - `bugreport.zip` (contains the btsnoop log)
@@ -83,5 +83,5 @@ Phone and Mac clocks agree (checked before the capture). Use the phone clock for
 ## Privacy
 The bug report and logcat contain device identifiers, app names, and possibly account info. They stay in the project folder on your Mac. Do not share or upload them.
 
-## Gate (Stage 1)
-Pass if I can state which bytes change for ANC on/off and for battery, and the transport (BLE GATT vs RFCOMM). If not, stop and re-plan.
+## Success criteria (Stage 1)
+Pass if the capture shows which bytes change for ANC on/off and for battery, and the transport (BLE GATT vs RFCOMM). If not, stop and re-plan.

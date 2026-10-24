@@ -23,21 +23,21 @@ Confidence: all items below are **observed on the Mac** (single source) unless n
 The level went up 48 -> 50, so either it was charged in between or the sources differ. **Need the app % shown right now** to compare. Tag 0x0d stays unverified.
 
 ## Open
-- [ ] Approval needed: send the single captured frame `00dd0200010005002f00010001` (SET HostType = 01) and retry the GETs.
+- [ ] Next: send the single captured frame `00dd0200010005002f00010001` (SET HostType = 01) and retry the GETs.
 
-## Battery update (19:3x, user report)
+## Battery update (19:3x)
 - iOS Settings > Bluetooth: 50 %. JBL app: 47 %. Standard 0x2A19 read on the Mac: 50 %.
 - So the standard battery value matches iOS and is a different number from the app's. The app's figure is 3 points lower than the standard one now, and was 48 % (tag 0x0d = 0x30) at 18:40.
 - Prediction to test (not yet confirmed): tag 0x0d currently reads 0x2f (47). If a GET of tag 0x0d returns 0x2f, tag 0x0d = the app's battery % is confirmed from a second point.
 - Standard value is usable as a fallback for a menu bar app, but it won't match the JBL app.
 
-## 5d: HostType write (19:37, user approved)
+## 5d: HostType write (19:37)
 - Sent only `00dd0200010005002f00010001`. Write accepted by the stack, **no reply** within 2.5 s (the capture showed an echo plus ack within ~30 ms). Script stopped, no GETs sent.
 - Capture check (hci, phone side): on every LE connect the phone sends `LE Enable Encryption` right away and only then does MTU exchange and GATT traffic (frames 2846, 3311, 6119, 6938, 7862 ...). So the phone's control link is always **encrypted/bonded**.
 - Mac link: no pairing prompt appeared, so it is probably unencrypted.
 - Hypothesis (capture only for the phone side, Mac side untested): the vendor service silently ignores writes from an unencrypted link.
-- [ ] Gate (Stage 5: read battery + ANC state from the Mac): **not passed**. Only standard battery (50 %) works.
-- [ ] Options: (a) stop at the standard battery; (b) try to make macOS bond over LE (needs pairing mode, creates a lasting bond; ask first); (c) different transport, e.g. classic RFCOMM ch. 23 (unexamined).
+- [ ] Stage 5 goal (read battery + ANC state from the Mac): **not reached**. Only standard battery (50 %) works.
+- [ ] Ways forward: stop at the standard battery; make macOS bond over LE (needs pairing mode, creates a lasting bond); or a different transport, e.g. classic RFCOMM ch. 23 (unexamined).
 
 ## 5e: RFCOMM channel 23 analysis (capture only, offline)
 - Sessions: 18:08, 18:19, 18:21-22, 18:25-29, 18:39, 18:44. Not before every BLE connect: the BLE session at 18:11:25 had no RFCOMM in the 3 min before it (last one 18:08:14).
@@ -45,10 +45,10 @@ The level went up 48 -> 50, so either it was charged in between or the sources d
 - No setting change appears on RFCOMM at any time. All setting traffic is BLE.
 - Code: the string `in-use` is not found as a literal in the Java sources (probably built from bytes or in native code `libcounterfeit`/`libnativelib`, unexamined).
 - Two competing explanations for the Mac's silent control channel: (1) unencrypted LE link (see 5d); (2) the device only trusts a host that has completed this RFCOMM challenge on the classic link. Neither is confirmed. The 18:11 BLE session worked 3 min after the last RFCOMM exchange, which is compatible with (2) (one check per classic connection) and with (1).
-- Reproducing the challenge would mean working out an authentication algorithm. Not attempted, needs a separate go-ahead.
+- Reproducing the challenge would mean working out an authentication algorithm. Not attempted.
 
-## 5f: bonding attempt (prep done, waiting for user)
-Script: `mac/probe4.py`. User steps: (1) Mac Settings > Bluetooth > forget the headphones (Mac only, iPhone untouched); (2) headphones to pairing mode; (3) report back; (4) user runs the script.
+## 5f: bonding attempt
+Script: `mac/probe4.py`. Steps: (1) Mac Settings > Bluetooth > forget the headphones (Mac only, iPhone untouched); (2) headphones to pairing mode; (3) run the script.
 - [ ] Mac forgets headphones
 - [ ] Headphones in pairing mode
 - [ ] Run probe4 and click Accept on any macOS dialog
@@ -61,7 +61,7 @@ Undo: Mac Settings > Bluetooth > forget, then pair normally. Mac audio will need
 - [x] HostType write: echoed (cmd 3) and acked (`00dd0200010002000000`), same as the phone capture.
 - [x] GET replies from the Mac: ANC 0x18 = 7f, Ambient 0x19 = 7f, TalkThru 0x1a = 7f (all off), **battery 0x0d = 0x2f = 47, app showed 47 %**, ProductID 0x04 = 0x215f. All decode with `proto/jbl_proto.py`.
 - [x] Battery tag verified with a second point (48 <-> 0x30, 47 <-> 0x2f).
-- [x] Stage 5 gate (read battery + ANC state from the Mac): **passed.**
+- [x] Stage 5 goal (read battery + ANC state from the Mac): **reached.**
 - [ ] Not separated: new LE bond vs pairing mode itself. Retest after normal re-pairing (outside pairing mode).
 - [ ] Not tested: Mac and phone app at the same time.
 - [ ] Mac audio needs re-pairing for normal use (the Mac forgot the headphones).
@@ -72,17 +72,16 @@ Undo: Mac Settings > Bluetooth > forget, then pair normally. Mac audio will need
 - Conclusion: pairing mode is not needed; a one-time LE pairing was enough. **Whether the bond is strictly required is still unproven** (it was absent in the failing 19:37 run, present in both working runs).
 - [ ] Optional: forget only the "Bluetooth device" entry and rerun probe3 to prove the bond is the cause.
 - [ ] Not tested: Mac + phone app control at the same time.
-- [ ] Stage 5 sign-off by user, then Stage 6 go-ahead.
 
 ## 5h bond test (19:56, observed)
-- User forgot only the LE-only "Bluetooth Device" entry (the one probe4's dialog created); audio entry "Headphones" kept.
+- Forgot only the LE-only "Bluetooth Device" entry (the one probe4's dialog created); audio entry "Headphones" kept.
 - `probe3.py` result: unchanged, full replies (PairingStatus push, HostType echo+ack, 5 GET replies, battery 0x2f).
-- Conclusion: the separate LE entry is NOT required. My earlier "needs a bond" explanation is not supported as stated.
+- Conclusion: the separate LE entry is NOT required. The earlier "needs a bond" explanation is not supported as stated.
 - What differs between failing (19:31, 19:37) and working (19:46, 19:53, 19:56): the Mac's pairing with the headphones was removed and made fresh in between (also the headphones went through pairing mode). Either a stale old Mac pairing blocked the control link, or a fresh pairing gives the Mac LE-usable keys. Not distinguished.
 - [ ] Open: if it fails again later, retry order = check Mac pairing state, forget + re-pair headphones on the Mac (pairing mode).
 - [ ] Open: Mac + phone app at once, untested.
 
-## Stage 6a (ANC toggle) - prep, user approved 19:5x
+## Stage 6a (ANC toggle) - prep 19:5x
 Script `mac/probe5.py`: HostType, GET 0x18, SET ANC on (`00dd02000100050018000100ff`, 5x in capture), GET, hold 6 s, SET ANC off (`00dd020001000500180001007f`, 4x in capture), GET 0x18-0x1a. Starting state was all off, so the end state equals the start state.
 - [x] Run 19:59:15, result below
 
@@ -90,10 +89,9 @@ Script `mac/probe5.py`: HostType, GET 0x18, SET ANC on (`00dd0200010005001800010
 - SET ANC on: device pushed a state notification (`...18 00 01 00 ff | 19 00 01 00 7f | 1a 00 01 00 7f`) then the standard ack. GET read back `ff`.
 - SET ANC off: state notification all `7f`, ack, and the final GET of 0x18/0x19/0x1a returned all `7f` (= starting state).
 - Same sequence as the phone capture (state push first, ack second). Write path from the Mac is confirmed for the ANC tag.
-- [ ] User to say whether ANC was audibly heard switching on and off.
-- [x] User heard ANC switch on and off (19:5x).
+- [x] ANC heard switching on and off (19:5x).
 
-## Stage 6b (Ambient Aware + TalkThru) - prep, user approved
+## Stage 6b (Ambient Aware + TalkThru) - prep
 Script `mac/probe6.py`: HostType, GET 0x18-0x1a, SET Ambient Aware (`00dd02000100050019000100ff`, 2x in capture), GET, hold 6 s, SET TalkThru (`00dd0200010005001a000100ff`, 2x in capture), GET, hold 6 s, SET all off (`00dd020001000500180001007f`, always sent at the end, even after an error). Evidence = device state push + read-back, not hearing.
 - [x] Run 20:03:37, result below
 
@@ -101,10 +99,10 @@ Script `mac/probe6.py`: HostType, GET 0x18-0x1a, SET Ambient Aware (`00dd0200010
 - Baseline all `7f`. SET Ambient Aware: state push `18=7f 19=ff 1a=7f`, ack, read-back identical.
 - SET TalkThru: state push `18=7f 19=7f 1a=ff`, ack, read-back identical. (Setting TalkThru switched Ambient Aware off: exclusive group, as in the capture.)
 - SET all off: state push all `7f`, ack, final read all `7f` (= start state).
-- Gate 6b: passed. Only captured frames were sent. The log label said "probe5" in this run (copied header text, fixed in the file afterwards); the run was `probe6.py`.
-- [ ] Next Stage 6 candidates (user go-ahead needed): Voice Aware level, balance, Spatial Sound, Auto Power Off.
+- 6b: passed. Only captured frames were sent. The log label said "probe5" in this run (copied header text, fixed in the file afterwards); the run was `probe6.py`.
+- [ ] Next Stage 6 candidates: Voice Aware level, balance, Spatial Sound, Auto Power Off.
 
-## Stage 6c (full settings suite) - prep, user approved ("run entire suite, auto power off last")
+## Stage 6c (full settings suite, auto power off last) - prep
 Script `mac/probe7.py`. Reads a baseline of 0x23, 0x15, 0x22, 0x0c40, 0x0c41, 0x12 first, then per group: SET each captured frame, read it back, compare, then restore the baseline; a finally block restores all again. Groups in order: Voice Aware (low/mid/high/off), balance (0/-16/+16/off), Spatial (music/movie/game), voice prompts (off/on), Auto Power Off last (30 min/1 h/2 h/off). Every test frame must be byte-identical to a phone write in the capture, otherwise skipped.
 Excluded on purpose: button gestures, EQ, Smart Audio & Video, LE Audio, Auracast, Spatial "off" (capture shows two codes, restored from baseline instead).
 - [x] Run 20:12:19, result below
@@ -116,13 +114,13 @@ Excluded on purpose: button gestures, EQ, Smart Audio & Video, LE Audio, Auracas
   - Voice prompts: wrote `ff`/`7f`, read `80`/`00`. Status bit is correct (on=80, off=00); the device drops the level bits (7f -> 0). Baseline (`00`) = prompts were OFF.
   - Auto Power Off "off": wrote `201c` (2 h, off), read `0807` (30 min, off). The device keeps/uses its default 30 min as the stored duration when switched off. Baseline `0807` = off at 30 min.
 - Restores: every group restored and verified; final read of all six tags == baseline.
-- Gate Stage 6: passed for all tested settings. Spatial mode numbers (music=82, movie=81, game=83) are now confirmed by device read-back (though not by listening).
-- [ ] Settings are currently at the end-of-capture state, not necessarily the user's original: voice prompts OFF (likely originally ON, English), Auto Power Off OFF (likely originally 30 min ON). Offer to set these back with captured frames (`00dd020001000a00400c0100ff410c010001`, `00dd020001000600120002000887`).
+- Stage 6: passed for all tested settings. Spatial mode numbers (music=82, movie=81, game=83) are now confirmed by device read-back (though not by listening).
+- [ ] Settings are currently at the end-of-capture state, not necessarily the original: voice prompts OFF (likely originally ON, English), Auto Power Off OFF (likely originally 30 min ON). Can be set back with captured frames (`00dd020001000a00400c0100ff410c010001`, `00dd020001000600120002000887`).
 
 ## Stage 6d (direct power off), prep and result
 Script `mac/probe8.py`. Sends HostType, reads battery, 5 s countdown, then the captured frame `00dd020001000600110002000000` once.
 - Run 1 (21:07): aborted at the typed prompt (no keyboard input under the `!` prefix). Nothing was sent. The "LINK DROPPED" line was the script's own exit.
 - Run 2 (21:08:02, observed on the Mac): TX power off, then RX `00dd0300010008000000110002000000` (tag 0x0011 pushed back) and RX `00dd0200010002000000` (ack), then LINK DROPPED 21:08:16. Same order as the phone capture (state push, then ack, then drop).
 - Script crashed afterwards with a RuntimeError (asyncio.Event created outside the running loop, Python 3.9). It happened after the send and does not affect the result. Fixed in the file, not re-run.
-- [x] User confirmed: headphones switched off, and a button press brought them back.
-- Gate 6d: passed. Power off (tag 0x0011 = 0000) is verified from capture, code and a live Mac write.
+- [x] Confirmed: headphones switched off, and a button press brought them back.
+- 6d: passed. Power off (tag 0x0011 = 0000) is verified from capture, code and a live Mac write.

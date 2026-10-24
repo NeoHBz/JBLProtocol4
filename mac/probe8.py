@@ -1,4 +1,4 @@
-"""Stage 6d: direct power off. Writes ONLY: HostType (approved earlier) and ONE power-off frame (tag 0x0011 = 0000), the exact
+"""Stage 6d: direct power off. Writes ONLY: HostType (verified earlier) and ONE power-off frame (tag 0x0011 = 0000), the exact
 bytes the phone sent at 18:46:14 (captures/bugreport2.zip). Sent once, never retried. The headphones switch off and the link drops;
 press the power button on the headset to bring them back. Needs --i-understand --power-off --now, then a 5 second countdown (Ctrl-C cancels)."""
 import sys as _sys

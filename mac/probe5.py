@@ -1,4 +1,4 @@
-"""Stage 6a: ANC toggle. Writes ONLY: HostType (approved earlier), ANC on, ANC off. Each frame is checked against
+"""Stage 6a: ANC toggle. Writes ONLY: HostType (verified earlier), ANC on, ANC off. Each frame is checked against
 the exact bytes seen in the phone capture before sending. Stops on any missing echo/ack and tries to leave ANC off."""
 import sys as _sys
 if "--i-understand" not in _sys.argv:

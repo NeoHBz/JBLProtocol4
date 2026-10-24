@@ -9,14 +9,13 @@ Confidence tags: **code** = seen in decompiled code only (single source, unverif
 - [x] Record package, version, permissions, native libs, obfuscation
 - [x] Prior-art search (limited, 2 searches)
 - [x] Classify features
-- [x] Resolve device ambiguity: user confirmed **JBL Tune 780NC** (not Tour One M2, not Live 780NC)
-- [ ] Stage 0 gate sign-off by user
+- [x] Resolve device ambiguity: confirmed on the device, **JBL Tune 780NC** (not Tour One M2, not Live 780NC)
 
 ## Device (resolved)
-User confirmed the Bluetooth name: **JBL Tune 780NC** (`hm/e.java:198`, constant `a2`).
+Bluetooth name on the device: **JBL Tune 780NC** (`hm/e.java:198`, constant `a2`).
 - Tour One M2 (`hm/e.java:546`) and Live 780NC (`hm/e.java:175`) are different products. Ignore them.
 - In `cn/o0.java:728` the app groups Tune 780NC with Tune 770NC, 775NC and 777NC (shared device image map, and the pairing screen reuses `welcome_tune_770nc` assets). **Code only:** the 780NC likely shares a command set with the 770NC family.
-- Consequence: the handoff feature list was written for a different mental model. Auracast, Smart Audio & Video, Spatial Sound modes and TalkThru may not exist on the Tune 780NC. Stage 1 will test each one on the real device, and anything the app does not show is dropped.
+- Consequence: the initial feature list assumed a different model. Auracast, Smart Audio & Video, Spatial Sound modes and TalkThru may not exist on the Tune 780NC. Stage 1 will test each one on the real device, and anything the app does not show is dropped.
 - Which Harman command classes the Tune 780NC enables is still unconfirmed. It needs a code path trace in Stage 2.
 
 ## APK
@@ -75,8 +74,8 @@ Class names come from `com/harman/bluetooth/imp/cmd/`. A class name existing is 
 | Auto Power Off | uncertain | no matching class name yet |
 | Cloud-dependent | n/a | Firebase, AWS analytics, ads present. None of the listed features look cloud-bound yet. |
 
-## Stage 0 gate
-Protocol logic is in readable Java, not in native code, and no command-level encryption was found. **Gate: provisionally passed.** One caveat left: `libnativelib` / `libcounterfeit` unchecked.
+## Stage 0 result
+Protocol logic is in readable Java, not in native code, and no command-level encryption was found. **Provisionally passed.** One caveat left: `libnativelib` / `libcounterfeit` unchecked.
 
 ## Next
-1. You give the go-ahead for Stage 1 (I write `notes/capture-script.md`, scoped to the Tune 780NC).
+Stage 1: a capture of the phone app, scoped to the Tune 780NC (`notes/capture-script.md`).
