@@ -30,3 +30,6 @@ __pycache__/
 mac/JBLControl/local.mk
 *.p12
 *.pem
+
+# Local Claude Code state (worktrees, settings)
+.claude/
