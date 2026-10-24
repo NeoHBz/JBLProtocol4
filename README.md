@@ -5,7 +5,7 @@ A small macOS menu bar app for recent JBL headphones, plus the reverse-engineere
 > [!IMPORTANT]
 > **Unofficial.** JBL Protocol4 is an independent project. It is not made, affiliated with, authorized, sponsored or endorsed by JBL, Harman International Industries, Incorporated, or Samsung Electronics. It is not the official JBL Headphones app and gets no support from them.
 >
-> JBL, Harman, Tune and the product names are trademarks of their respective owners. They are used here only to say which devices the app works with.
+> JBL, Harman, Tune and the product names are trademarks of their respective owners. They are used here only to say which devices the app works with. The product photos the app shows belong to Harman International and are not covered by this project's license ([details](mac/JBLProtocol4/ProductImages/README.md)).
 >
 > This is interoperability research on the author's own device. It comes with no warranty (see [LICENSE](LICENSE)): use it at your own risk, you are responsible for your own device. Using it may affect your warranty or support from the manufacturer.
 
@@ -65,7 +65,8 @@ Details, every `make` target and the CI signing setup: `mac/JBLProtocol4/README.
 ### Making a release
 Push a version tag: `git tag v0.1.0 && git push origin v0.1.0`. The `release` workflow runs the tests, builds a universal (Apple Silicon and Intel) app, and publishes the DMG, zip and checksums as a GitHub release. Tags with a dash (`v0.2.0-beta.1`) become pre-releases.
 
-Release builds have no product photos: the photos belong to JBL and are not in the repo, so the panel shows a headphones symbol instead. A build made on your own Mac includes them if you have the decompiled JBL app locally (`mac/JBLProtocol4/README.md`, Product photos). Do not upload such a build.
+### Product photos
+The panel shows a photo of the connected model in its colour. The photos are in `mac/JBLProtocol4/ProductImages/`. They belong to Harman International (JBL) and are **not** covered by this project's license: see `mac/JBLProtocol4/ProductImages/README.md` for ownership and the disclaimer.
 
 ## Device family
 The 780NC speaks the protocol the JBL app calls "Protocol4". According to the app's bundled product list, about 34 recent JBL models use the same protocol, on Bestechnic and Realtek chips alike. **Only the Tune 780NC has been tested.** Each model supports its own subset of settings, so other models need checking before use. Full table with controller classes and product IDs: `notes/protocol.md` section 11.

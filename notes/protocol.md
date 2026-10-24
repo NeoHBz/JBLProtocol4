@@ -244,7 +244,7 @@ The family follows the protocol, not the chip: the list tags the 780NC `Bes` alt
 - Per-model features: each dash4 config's `uiFeatures` lists the cards the app shows (`ANC`, `AA`, `TT`, `VoiceAwareCard`, `Spatial3DCard`, `LeftRightBalanceCard`, `AutoPowerOffCard`, `VoicePromptCard`, ...), and `isSupportConfig` in product_list.json adds flags such as `DashBoardPowerOff`. Some models use look-alike cards (`LeftRightBalance2Card`, `SpatialSoundWithHeadTrackCard`, `PowerSavingCard`) whose values are not verified. The Mac app's table: `Sources/JBLKit/Products.swift`, `features`.
 
 ## 12. Product images (code)
-Source: `decompiled/apktool/assets/product_list_readme.txt`, `assets/config/dash4/*.json`, `res/drawable-xxxhdpi/`. The images are JBL artwork: reference them, do not commit them.
+Source: `decompiled/apktool/assets/product_list_readme.txt`, `assets/config/dash4/*.json`, `res/drawable-xxxhdpi/`. The images are JBL artwork. The app's copies are in `mac/JBLProtocol4/ProductImages/`, with an ownership notice in its README.
 
 ColorID (tag 0x0005) values. The readme lists 0x00-0x12; the full list is the colour enum in `jadx/sources/cn/f.java` (an unknown ID falls back to Black there), whose names are also the `resourceConfig` keys: 0x13 Champagne, 0x14 Brown, 0x15 SquareBlack, 0x16 SquareWhite, 0x17 SquareBrown, 0x18 Yellow, 0x19 Rose, 0x1a Squad, 0x1b Turquoise, 0x1c PeachOrange, 0x1d BlackGray, 0x1e BlackLime, 0x1f Orange, 0x20 Copper, 0x25 Teal (not 0x21). Mac app: `Sources/JBLKit/Products.swift`.
 

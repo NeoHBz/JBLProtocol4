@@ -10,7 +10,9 @@ BIN="$(swift build -c "$CONFIG" ${ARCH[@]+"${ARCH[@]}"} --show-bin-path)/JBLProt
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
 cp "$BIN" "$APP/Contents/MacOS/JBLProtocol4"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-scripts/product-images.sh "$APP/Contents/Resources/ProductImages"
+# Committed photos (ProductImages/README.md); the README itself stays out of the app.
+mkdir -p "$APP/Contents/Resources/ProductImages"
+find ProductImages -maxdepth 1 -type f \( -name '*.webp' -o -name '*.png' \) -exec cp {} "$APP/Contents/Resources/ProductImages/" \;
 PB=/usr/libexec/PlistBuddy
 "$PB" -c "Set :CFBundleIdentifier ${JBL_BUNDLE_ID:-local.jblprotocol4}" "$APP/Contents/Info.plist"
 "$PB" -c "Set :CFBundleShortVersionString ${JBL_VERSION:-0.1.0}" "$APP/Contents/Info.plist"
