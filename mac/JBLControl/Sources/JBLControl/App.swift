@@ -35,6 +35,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
     }
 
+
     @objc private func toggle() {
         panel == nil ? open() : close()
     }
@@ -72,16 +73,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-/// Borderless panel hanging from a fixed top-right corner.
+/// Borderless glass panel hanging from a fixed top-right corner.
 ///
 /// How it avoids jumping when "More settings" folds: the SwiftUI view lives in a tall canvas pinned to the top of a
-/// clipping card. The window only changes how much of that canvas shows, so the content never moves; at worst, for
-/// one frame, the bottom edge is a little short or long.
+/// clipping card. The window only changes how much of that canvas shows, so the content never moves. The window
+/// animates its height with the same curve and duration SwiftUI uses for the rows, so the bottom edge follows them.
 final class Panel: NSPanel {
     var onEscape: (() -> Void)?
     private let topRight: NSPoint
-    private var card: NSView!
-    private var canvas: NSView!
     private static let canvasHeight: CGFloat = 2000
 
     init(device: Device, topRight: NSPoint) {
@@ -95,51 +94,62 @@ final class Panel: NSPanel {
 
         // Natural height of the collapsed panel, so the first frame on screen is already the right size.
         let startHeight = NSHostingView(rootView: PanelView().environmentObject(device)).fittingSize.height
+        let bounds = NSRect(x: 0, y: 0, width: Theme.width, height: startHeight)
 
-        let card = NSView(frame: NSRect(x: 0, y: 0, width: Theme.width, height: startHeight))
-        card.wantsLayer = true
-        card.layer?.cornerRadius = Theme.corner
-        card.layer?.masksToBounds = true
-        card.layer?.borderWidth = 1
+        let clip = NSView(frame: bounds)
+        clip.wantsLayer = true
+        clip.layer?.cornerRadius = Theme.corner
+        clip.layer?.masksToBounds = true
+        clip.autoresizingMask = [.width, .height]
 
         var setHeight: (CGFloat) -> Void = { _ in }
         let canvas = NSHostingView(rootView:
             PanelView(onHeight: { setHeight($0) })
                 .environmentObject(device)
                 .frame(width: Theme.width, height: Self.canvasHeight, alignment: .top)
-                .background(Theme.pop)
         )
         canvas.sizingOptions = []
-        canvas.frame = NSRect(x: 0, y: card.bounds.height - Self.canvasHeight, width: Theme.width, height: Self.canvasHeight)
-        card.addSubview(canvas)
-        contentView = card
-        self.card = card
-        self.canvas = canvas
+        canvas.frame = NSRect(x: 0, y: startHeight - Self.canvasHeight, width: Theme.width, height: Self.canvasHeight)
+        canvas.autoresizingMask = [.minYMargin]   // glued to the top edge while the window resizes
+        clip.addSubview(canvas)
 
+        contentView = Self.glass(around: clip, frame: bounds)
         setFrame(NSRect(x: topRight.x - Theme.width, y: topRight.y - startHeight, width: Theme.width, height: startHeight), display: false)
-        // The height arrives in the middle of SwiftUI's layout pass; resizing there makes AppKit move the window now and
-        // its contents later. Resize right after the pass instead, window and contents together.
+
+        // The height arrives in the middle of SwiftUI's layout pass; resizing the window there makes AppKit move the
+        // window now and its contents later. Start the resize right after the pass instead.
         setHeight = { [weak self] h in DispatchQueue.main.async { self?.fit(height: h) } }
-        updateBorder()
     }
 
     override var canBecomeKey: Bool { true }
     override func cancelOperation(_ sender: Any?) { onEscape?() }
 
-    private func updateBorder() {
-        contentView?.layer?.borderColor = NSColor(Theme.line).cgColor
+    /// Liquid Glass on macOS 26 and later, the classic translucent popover material before that.
+    private static func glass(around content: NSView, frame: NSRect) -> NSView {
+        if #available(macOS 26.0, *) {
+            let glass = NSGlassEffectView(frame: frame)
+            glass.cornerRadius = Theme.corner
+            glass.contentView = content
+            return glass
+        }
+        let blur = NSVisualEffectView(frame: frame)
+        blur.material = .popover
+        blur.state = .active
+        blur.wantsLayer = true
+        blur.layer?.cornerRadius = Theme.corner
+        blur.layer?.masksToBounds = true
+        blur.addSubview(content)
+        return blur
     }
 
-    /// Resize to `height`, keeping the top-right corner fixed.
+    /// Animate to `height`, keeping the top-right corner fixed.
     private func fit(height: CGFloat) {
         guard height > 0, abs(frame.height - height) > 0.5 else { return }
+        let target = NSRect(x: topRight.x - Theme.width, y: topRight.y - height, width: Theme.width, height: height)
         NSAnimationContext.runAnimationGroup { ctx in
-            ctx.duration = 0
-            ctx.allowsImplicitAnimation = false
-            setFrame(NSRect(x: topRight.x - Theme.width, y: topRight.y - height, width: Theme.width, height: height), display: false)
-            card.frame = NSRect(x: 0, y: 0, width: Theme.width, height: height)
-            canvas.frame.origin.y = height - Self.canvasHeight   // canvas top = card top
-            card.display()
+            ctx.duration = Theme.foldDuration
+            ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+            animator().setFrame(target, display: true)
         }
     }
 }

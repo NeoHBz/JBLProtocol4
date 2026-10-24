@@ -2,11 +2,11 @@ import SwiftUI
 
 /// Colours and controls from the A1 mockup. Each colour has the mockup's light and dark value.
 enum Theme {
-    static let pop       = dynamic(light: 0xf6f7f9, dark: 0x252a31)
     static let ink       = dynamic(light: 0x171a1f, dark: 0xeceff3)
     static let mute      = dynamic(light: 0x667080, dark: 0x8d97a6)
-    static let line      = dynamic(light: 0xdcdfe5, dark: 0x363c46)
-    static let fill      = dynamic(light: 0xe6e9ee, dark: 0x313741)
+    // Tracks and dividers are see-through so the glass behind them shows (the mockup's solid greys were for a flat card).
+    static let line      = dynamic(light: 0x000000, dark: 0xffffff, alpha: 0.12)
+    static let fill      = dynamic(light: 0x000000, dark: 0xffffff, alpha: 0.09)
     static let accent    = dynamic(light: 0xe8590c, dark: 0xff7a2e)
     static let accentInk = dynamic(light: 0xffffff, dark: 0x1a0d03)
     static let good      = dynamic(light: 0x2f9e55, dark: 0x4cc073)
@@ -14,9 +14,14 @@ enum Theme {
 
     static let width: CGFloat = 320
     static let corner: CGFloat = 14
+    /// "More settings" fold: SwiftUI animates the rows and AppKit animates the window with this same duration and curve.
+    static let foldDuration = 0.25
+    static let fold = Animation.easeInOut(duration: foldDuration)
 
-    private static func dynamic(light: UInt32, dark: UInt32) -> Color {
-        Color(nsColor: NSColor(name: nil) { $0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(hex: dark) : NSColor(hex: light) })
+    private static func dynamic(light: UInt32, dark: UInt32, alpha: CGFloat = 1) -> Color {
+        Color(nsColor: NSColor(name: nil) {
+            ($0.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? NSColor(hex: dark) : NSColor(hex: light)).withAlphaComponent(alpha)
+        })
     }
 }
 

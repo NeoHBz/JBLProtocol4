@@ -62,7 +62,7 @@ struct PanelView: View {
     }
 
     private var moreToggle: some View {
-        Button { more.toggle() } label: {
+        Button { withAnimation(Theme.fold) { more.toggle() } } label: {
             HStack {
                 Text("More settings")
                 Spacer()
