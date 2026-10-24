@@ -48,7 +48,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func open() {
         guard let button = item.button else { return }
         // A fresh panel each time, so "More settings" always starts collapsed.
-        popover.contentViewController = NSHostingController(rootView: PanelView().environmentObject(device))
+        let host = NSHostingController(rootView: PanelView().environmentObject(device))
+        host.sizingOptions = [.preferredContentSize]   // the popover follows the panel as it grows or shrinks
+        popover.contentViewController = host
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         let window = popover.contentViewController?.view.window
         window?.makeKey()
