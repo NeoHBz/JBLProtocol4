@@ -51,9 +51,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
         // Clicks inside this app (including on the icon) never reach a global monitor, so the icon's own action stays in charge.
+        // The menu bar icon is drawn by the system, so its clicks look like "another app" too: skip them here and let toggle() close.
         outsideClick = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            Task { @MainActor in self?.close() }
+            Task { @MainActor in
+                guard let self, !self.iconContains(NSEvent.mouseLocation) else { return }
+                self.close()
+            }
         }
+    }
+
+    private func iconContains(_ p: NSPoint) -> Bool {
+        guard let b = item.button, let w = b.window else { return false }
+        return w.convertToScreen(b.convert(b.bounds, to: nil)).insetBy(dx: -4, dy: -4).contains(p)
     }
 
     private func close() {

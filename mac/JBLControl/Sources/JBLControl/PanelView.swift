@@ -41,36 +41,38 @@ struct PanelView: View {
         }
     }
 
-    private var noisePicker: some View {
-        Picker("Noise control", selection: Binding(get: { d.noise }, set: { d.setNoise($0) })) {
-            Text("ANC").tag(NoiseMode.anc)
-            Text("Ambient").tag(NoiseMode.ambient)
-            Text("TalkThru").tag(NoiseMode.talkThru)
-            Text("Off").tag(NoiseMode.off)
+    private func switchRow(_ title: String, _ on: Binding<Bool>) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Toggle(title, isOn: on).toggleStyle(.switch).labelsHidden().tint(Theme.accent).disabled(!live)
         }
-        .pickerStyle(.segmented).labelsHidden().disabled(!live)
+    }
+
+    private var noisePicker: some View {
+        Segments(selection: Binding(get: { d.noise }, set: { d.setNoise($0) }),
+                 options: [("ANC", .anc), ("Ambient", .ambient), ("TalkThru", .talkThru), ("Off", .off)])
+            .disabled(!live)
     }
 
     private var voiceAwareSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle("Voice Aware", isOn: Binding(get: { d.voiceAware != nil }, set: { d.setVoiceAware($0 ? .low : nil) }))
-                .toggleStyle(.switch).disabled(!live)
+            switchRow("Voice Aware", Binding(get: { d.voiceAware != nil }, set: { d.setVoiceAware($0 ? .low : nil) }))
             if let level = d.voiceAware {
-                Picker("Voice Aware level", selection: Binding(get: { level }, set: { d.setVoiceAware($0) })) {
-                    Text("Low").tag(VoiceAwareLevel.low); Text("Mid").tag(VoiceAwareLevel.mid); Text("High").tag(VoiceAwareLevel.high)
-                }.pickerStyle(.segmented).labelsHidden().disabled(!live)
+                Segments(selection: Binding(get: { level }, set: { d.setVoiceAware($0) }),
+                         options: [("Low", .low), ("Mid", .mid), ("High", .high)])
+                    .disabled(!live)
             }
         }
     }
 
     private var spatialSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle("Spatial Sound", isOn: Binding(get: { d.spatial != nil }, set: { d.setSpatial($0 ? .music : nil) }))
-                .toggleStyle(.switch).disabled(!live)
+            switchRow("Spatial Sound", Binding(get: { d.spatial != nil }, set: { d.setSpatial($0 ? .music : nil) }))
             if let mode = d.spatial {
-                Picker("Spatial mode", selection: Binding(get: { mode }, set: { d.setSpatial($0) })) {
-                    Text("Music").tag(SpatialMode.music); Text("Movie").tag(SpatialMode.movie); Text("Game").tag(SpatialMode.game)
-                }.pickerStyle(.segmented).labelsHidden().disabled(!live)
+                Segments(selection: Binding(get: { mode }, set: { d.setSpatial($0) }),
+                         options: [("Music", .music), ("Movie", .movie), ("Game", .game)])
+                    .disabled(!live)
             }
         }
     }
@@ -78,12 +80,11 @@ struct PanelView: View {
     private var moreSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button { withAnimation(.easeOut(duration: 0.15)) { more.toggle() } } label: {
-                HStack { Text("More settings"); Spacer(); Text(more ? "−" : "+").monospaced() }
+                HStack { Text("More settings").font(.system(size: 12)); Spacer(); Text(more ? "−" : "+").monospaced() }
                     .foregroundStyle(.secondary).contentShape(Rectangle())
             }.buttonStyle(.plain).focusable(false)
             if more {
-                Toggle("Balance", isOn: Binding(get: { d.balanceOn }, set: { d.setBalance(d.balance, on: $0) }))
-                    .toggleStyle(.switch).disabled(!live)
+                switchRow("Balance", Binding(get: { d.balanceOn }, set: { d.setBalance(d.balance, on: $0) }))
                 if d.balanceOn {
                     HStack {
                         Text("L").font(.caption).foregroundStyle(.secondary)
@@ -103,9 +104,11 @@ struct PanelView: View {
                         Text("1 hour").tag(AutoOff.h1); Text("2 hours").tag(AutoOff.h2)
                     }.labelsHidden().fixedSize().disabled(!live)
                 }
-                Toggle("Voice prompts", isOn: Binding(get: { d.voicePrompts }, set: { d.setVoicePrompts($0) }))
-                    .toggleStyle(.switch).disabled(!live)
-                Button("Restore launch state") { d.restoreLaunchState() }.disabled(!d.canRestore)
+                switchRow("Voice prompts", Binding(get: { d.voicePrompts }, set: { d.setVoicePrompts($0) }))
+                Button { d.restoreLaunchState() } label: {
+                    Text("Restore launch state").font(.system(size: 12)).frame(maxWidth: .infinity).padding(.vertical, 6)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.18)))
+                }.buttonStyle(.plain).disabled(!d.canRestore)
             }
         }
     }
@@ -146,9 +149,37 @@ struct BatteryGlyph: View {
     let percent: Int
     var body: some View {
         ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 3).stroke(Color.secondary, lineWidth: 1.5).frame(width: 30, height: 12)
+            RoundedRectangle(cornerRadius: 3).stroke(Color.secondary, lineWidth: 1.5).frame(width: 44, height: 12)
             RoundedRectangle(cornerRadius: 1.5).fill(percent <= 15 ? Color.red : Color.green)
-                .frame(width: max(2, 24 * CGFloat(percent) / 100), height: 7).padding(.leading, 3)
+                .frame(width: max(2, 38 * CGFloat(percent) / 100), height: 7).padding(.leading, 3)
         }
+    }
+}
+
+enum Theme {
+    static let accent = Color(red: 1.0, green: 0.478, blue: 0.18)   // #ff7a2e, A1 dark accent
+    static let accentInk = Color(red: 0.102, green: 0.051, blue: 0.012)
+}
+
+/// A1 segmented control: grey track, selected segment filled orange with bold dark text.
+struct Segments<T: Hashable>: View {
+    @Binding var selection: T
+    let options: [(String, T)]
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(options.indices, id: \.self) { i in
+                let on = options[i].1 == selection
+                Button { selection = options[i].1 } label: {
+                    Text(options[i].0)
+                        .font(.system(size: 12, weight: on ? .bold : .regular))
+                        .foregroundStyle(on ? Theme.accentInk : Color.primary)
+                        .frame(maxWidth: .infinity).padding(.vertical, 6)
+                        .background(RoundedRectangle(cornerRadius: 7).fill(on ? Theme.accent : Color.clear))
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain).focusable(false)
+            }
+        }
+        .padding(3)
+        .background(RoundedRectangle(cornerRadius: 9).fill(Color.primary.opacity(0.1)))
     }
 }
