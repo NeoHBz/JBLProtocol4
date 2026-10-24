@@ -11,21 +11,26 @@ struct JBLControlApp: App {
     }
 }
 
-/// Owns the menu bar item and its panel. SwiftUI's MenuBarExtra could not be used here: its panel closes itself the
-/// moment the icon is clicked (the click takes focus away), and the same click then reopens it, so the second click
-/// never closed anything. Here the icon click toggles, and only clicks in other apps close the panel by themselves.
+/// Borderless window that can take keyboard focus (Tab, arrows) and closes on Esc.
+final class PanelWindow: NSPanel {
+    var onEscape: (() -> Void)?
+    override var canBecomeKey: Bool { true }
+    override func cancelOperation(_ sender: Any?) { onEscape?() }
+}
+
+/// Owns the menu bar item and its panel. Not MenuBarExtra (its panel closes itself when the icon is clicked, then the
+/// same click reopens it) and not NSPopover (it resizes badly when "More settings" folds). The panel is a plain window
+/// whose top edge stays under the icon while its height follows the content.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let device = Device()
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let popover = NSPopover()
+    private var panel: PanelWindow?
+    private var sizeObserver: NSKeyValueObservation?
     private var outsideClick: Any?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        popover.behavior = .applicationDefined
-        popover.animates = false
-
         if let button = item.button {
             button.image = NSImage(systemSymbolName: "headphones", accessibilityDescription: "JBL Control")
             button.imagePosition = .imageLeading
@@ -42,21 +47,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func toggle() {
-        popover.isShown ? close() : open()
+        panel == nil ? open() : close()
     }
 
     private func open() {
-        guard let button = item.button else { return }
         // A fresh panel each time, so "More settings" always starts collapsed.
         let host = NSHostingController(rootView: PanelView().environmentObject(device))
-        host.sizingOptions = [.preferredContentSize]   // the popover follows the panel as it grows or shrinks
-        popover.contentViewController = host
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        let window = popover.contentViewController?.view.window
-        window?.makeKey()
+        host.sizingOptions = [.preferredContentSize]
+        let size = host.sizeThatFits(in: NSSize(width: 320, height: 10_000))
+        host.view.frame.size = size
+
+        let background = NSVisualEffectView()
+        background.material = .popover
+        background.state = .active
+        background.wantsLayer = true
+        background.layer?.cornerRadius = 12
+        background.layer?.masksToBounds = true
+        host.view.translatesAutoresizingMaskIntoConstraints = false
+        background.addSubview(host.view)
+        NSLayoutConstraint.activate([
+            host.view.topAnchor.constraint(equalTo: background.topAnchor),
+            host.view.leadingAnchor.constraint(equalTo: background.leadingAnchor),
+            host.view.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+        ])
+
+        let w = PanelWindow(contentRect: NSRect(origin: .zero, size: size),
+                            styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
+        w.contentView = background
+        w.isOpaque = false
+        w.backgroundColor = .clear
+        w.hasShadow = true
+        w.level = .popUpMenu
+        w.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        w.onEscape = { [weak self] in self?.close() }
+        panel = w
+
+        place(w, size: size)
+        sizeObserver = host.observe(\.preferredContentSize, options: [.new]) { [weak self, weak w] _, change in
+            guard let size = change.newValue, size.height > 0 else { return }
+            Task { @MainActor in if let self, let w { self.place(w, size: size) } }
+        }
+        w.makeKeyAndOrderFront(nil)
         // Start with nothing focused; the first Tab then lands on the first control (ANC).
-        DispatchQueue.main.async { window?.makeFirstResponder(nil) }
-        // Clicks inside this app (including on the icon) never reach a global monitor, so the icon's own action stays in charge.
+        DispatchQueue.main.async { w.makeFirstResponder(nil) }
+
         // The menu bar icon is drawn by the system, so its clicks look like "another app" too: skip them here and let toggle() close.
         outsideClick = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             Task { @MainActor in
@@ -66,13 +100,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Top edge just under the icon, right edge level with the icon's right edge, kept on screen; the top never moves when the height changes.
+    private func place(_ w: NSWindow, size: NSSize) {
+        guard let b = item.button, let bw = b.window else { return }
+        let icon = bw.convertToScreen(b.convert(b.bounds, to: nil))
+        let screen = bw.screen?.visibleFrame ?? NSScreen.main?.visibleFrame ?? .zero
+        let x = min(max(icon.maxX - size.width, screen.minX + 6), screen.maxX - size.width - 6)
+        let top = icon.minY - 4
+        w.setFrame(NSRect(x: x, y: top - size.height, width: size.width, height: size.height), display: true, animate: false)
+    }
+
     private func iconContains(_ p: NSPoint) -> Bool {
         guard let b = item.button, let w = b.window else { return false }
         return w.convertToScreen(b.convert(b.bounds, to: nil)).insetBy(dx: -4, dy: -4).contains(p)
     }
 
     private func close() {
-        popover.performClose(nil)
+        sizeObserver = nil
+        panel?.orderOut(nil)
+        panel = nil
         if let m = outsideClick { NSEvent.removeMonitor(m); outsideClick = nil }
     }
 }
