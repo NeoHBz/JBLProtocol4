@@ -49,7 +49,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func open() {
         guard let button = item.button else { return }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        popover.contentViewController?.view.window?.makeKey()
+        let window = popover.contentViewController?.view.window
+        window?.makeKey()
+        // Start with nothing focused; the first Tab then lands on the first control (ANC).
+        DispatchQueue.main.async { window?.makeFirstResponder(nil) }
         // Clicks inside this app (including on the icon) never reach a global monitor, so the icon's own action stays in charge.
         // The menu bar icon is drawn by the system, so its clicks look like "another app" too: skip them here and let toggle() close.
         outsideClick = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in

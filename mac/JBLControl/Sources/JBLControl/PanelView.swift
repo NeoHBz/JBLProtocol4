@@ -180,7 +180,7 @@ struct Segments<T: Hashable>: View {
                         .frame(maxWidth: .infinity).padding(.vertical, 6)
                         .background(RoundedRectangle(cornerRadius: 7).fill(on ? Theme.accent : Color.clear))
                         .contentShape(Rectangle())
-                }.buttonStyle(.plain).focusable(false)
+                }.buttonStyle(.plain)
             }
         }
         .padding(3)
