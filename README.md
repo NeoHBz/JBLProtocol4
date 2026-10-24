@@ -97,7 +97,7 @@ Older models (for example Tune 770NC, Live 770NC) use different protocols and ar
 - `Dockerfile`, `docker-compose.yml`: tooling container (jadx, apktool, tshark, python).
 
 ## What is deliberately not here
-- The app (APK) and anything decompiled from it. Some notes cite paths such as `decompiled/...`, `captures/...`, `analysis/feature5_table.json` and a private brief: those files exist only on the author's machine.
+- The app (APK) and anything decompiled from it.
 - Raw captures and the full table derived from them: they contain device serials, addresses and phone identifiers.
 - `proto/fixtures/gatt.public.tsv` is a redacted command-channel-only fixture (serial, address, clock-sync and host-name hash zeroed, timestamps replaced). It is built by `analysis/redact_fixture.py` from a private table, which you can produce for your own device with `analysis/dump_gatt.sh` and your own HCI snoop log. `proto/tests` use `gatt.tsv` if present, else the public fixture.
 

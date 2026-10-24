@@ -1,4 +1,4 @@
-"""Stage 5f: try to get macOS to bond over LE, then repeat the approved probe3 steps.
+"""Stage 5f: try to get macOS to bond over LE, then repeat the probe3 steps.
 Sends only: standard/Fast-Pair READS (to trigger the pairing dialog), then the one captured HostType frame,
 then the same five read-only GETs. Never touches the Fast Pair write characteristics."""
 import sys as _sys

@@ -175,8 +175,8 @@ Write (candidates for Stage 6, low risk first): noise modes, Voice Aware, balanc
 Drop: LE Audio, Auracast, Smart Audio & Video, EQ (for now).
 
 ## 10. Open questions
-- [x] (done 19:46, see stage5-findings.md) Battery percent meaning: second reading at a different level, and what bit 7 does while charging. **Deferred by user: headphone has ~70 h battery, will take a short capture once the app shows a lower %.**
-- [x] Mac control link at the same time as the phone: audio multipoint works (iPhone and Mac at once), but the **control channel (GATT) takes one host only**. User-observed: while the Mac app is connected, the phone's JBL Headphones app cannot connect. Not captured; behaviour only.
+- [x] (done 19:46, see stage5-findings.md) Battery percent meaning: second reading at a different level, and what bit 7 does while charging. **Waited for a lower %: the headphone has ~70 h battery.**
+- [x] Mac control link at the same time as the phone: audio multipoint works (iPhone and Mac at once), but the **control channel (GATT) takes one host only**. Observed: while the Mac app is connected, the phone's JBL Headphones app cannot connect. Not captured; behaviour only.
 - [ ] Bond needed for GATT control: partial answer. An unbonded Mac got no replies (19:37). After forgetting the Mac and connecting while the headphones were in pairing mode, replies worked (19:46). Retest 19:53 outside pairing mode (bond present, audio re-paired): replies work, so pairing mode itself is not required. Bond test 19:56: after forgetting the LE-only 'Bluetooth Device' entry (audio entry kept), replies STILL work, so that separate entry is not what the channel depends on. What changed between the failing runs (19:31, 19:37) and all later runs is only that the Mac was re-paired for audio (fresh keys), so the cause is a fresh pairing / stale old pairing, not proven which.
 - [ ] What `0xb006` writes contain (expected: notification enable)
 - [x] (answered 2026-10-24, code: `product_list.json` maps the 780NC to `protocol4.Tune680Control`, a subclass of `General4Control`; see section 11) Which control class (protocol4 General4Control / airoha / lea) the 780NC uses

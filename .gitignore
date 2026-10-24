@@ -15,10 +15,9 @@ mac/probe-log.txt
 # Local audit output
 audit/
 
-# Local environment and the author's private brief
+# Local environment
 mac/.venv/
 local.config.json
-handoff.md
 .env
 
 # Python / OS noise
@@ -30,6 +29,3 @@ __pycache__/
 mac/JBLProtocol4/local.mk
 *.p12
 *.pem
-
-# Local Claude Code state (worktrees, settings)
-.claude/
