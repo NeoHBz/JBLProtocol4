@@ -17,6 +17,7 @@ audit/
 
 # Local environment and the author's private brief
 mac/.venv/
+local.config.json
 handoff.md
 .env
 

@@ -2,7 +2,11 @@
 Safety: baseline is read first and restored after each group and again in a finally block.
 Every test SET must appear byte-for-byte among the phone's captured writes (analysis/gatt.tsv) or it is skipped.
 Not included: button gestures, EQ, Smart Audio & Video, LE Audio, Auracast, anything off limits."""
-import asyncio, sys, time
+import sys as _sys
+if "--i-understand" not in _sys.argv:
+    _sys.exit("WARNING: this script WRITES settings to real headphones (captured frames only, baseline restored afterwards).\n"
+              "Read mac/README.md first, then re-run with --i-understand to proceed.")
+import asyncio, json, sys, time
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "proto"))
@@ -19,7 +23,19 @@ rx = []
 results = []
 
 CAPTURED = set()
-for line in open(ROOT / "analysis" / "gatt.tsv"):
+def _capture_table():
+    """Private table if you have one (path in local.config.json, default analysis/gatt.tsv), else the public fixture."""
+    try:
+        cfg = json.load(open(ROOT / "local.config.json"))
+    except OSError:
+        cfg = {}
+    for cand in (cfg.get("private_gatt_table", "analysis/gatt.tsv"), "proto/fixtures/gatt.public.tsv"):
+        if (ROOT / cand).exists():
+            return ROOT / cand
+    sys.exit("no capture table found (analysis/gatt.tsv or proto/fixtures/gatt.public.tsv)")
+
+
+for line in open(_capture_table()):
     f = line.rstrip("\n").split("\t")
     if len(f) >= 6 and f[2] == "0x00" and f[4] == "0xb003":
         CAPTURED.add(f[5])

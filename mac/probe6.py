@@ -1,5 +1,9 @@
 """Stage 6b: Ambient Aware and TalkThru. Writes ONLY: HostType (approved earlier), Ambient Aware on, TalkThru on, all off. Each frame is checked against
 the exact bytes seen in the phone capture before sending. Stops on any missing echo/ack and tries to leave ANC off."""
+import sys as _sys
+if "--i-understand" not in _sys.argv:
+    _sys.exit("WARNING: this script WRITES settings to real headphones (captured frames only, baseline restored afterwards).\n"
+              "Read mac/README.md first, then re-run with --i-understand to proceed.")
 import asyncio, sys, time
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent

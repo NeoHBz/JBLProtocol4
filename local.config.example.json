@@ -1,0 +1,6 @@
+{
+  "device_name": "JBL Tune 780NC",
+  "beacon_prefix_hex": "",
+  "private_gatt_table": "analysis/gatt.tsv",
+  "_comment": "Copy to local.config.json (gitignored). beacon_prefix_hex = first bytes of the headphones' address as hex, used by probe4.py to find them in pairing mode. Never commit real values."
+}

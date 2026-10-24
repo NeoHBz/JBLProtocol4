@@ -1,7 +1,7 @@
 # jbl780nc-re
 
 Unofficial, independent research into how the JBL Headphones app talks to the **JBL Tune 780NC** over Bluetooth Low Energy, with the aim of a macOS menu bar alternative.
-Not affiliated with or endorsed by JBL or Harman. Use at your own risk; you are responsible for your own device.
+Not affiliated with or endorsed by JBL or Harman. JBL and Harman are trademarks of their respective owners. This is independent interoperability research on the author's own device, and it comes with no warranty: use at your own risk, you are responsible for your own device.
 
 ## What is here
 - `notes/protocol.md`: the protocol spec (framing, tags, value encodings, what is off limits). Every claim carries a confidence level (observed in capture, seen in code, or both).
@@ -21,4 +21,4 @@ Not affiliated with or endorsed by JBL or Harman. Use at your own risk; you are 
 Do not send firmware-update, factory-reset or unverified commands. The spec lists the off-limits tags. Every write in `mac/` replays a frame that was first seen in a real capture.
 
 ## Status
-Stages 0 to 6 done (recon, capture, static cross-check, spec, offline validation, read-only Mac prototype, low-risk writes). Stage 7 (menu bar app) not started. No license has been chosen yet.
+Stages 0 to 6 done (recon, capture, static cross-check, spec, offline validation, read-only Mac prototype, low-risk writes). Stage 7 (menu bar app) not started. Licensed under the MIT License (see `LICENSE`). Local, private values live in a gitignored `local.config.json` (template: `local.config.example.json`).
