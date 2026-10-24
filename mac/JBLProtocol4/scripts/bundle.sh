@@ -8,6 +8,7 @@ BIN="$(swift build -c "$CONFIG" --show-bin-path)/JBLProtocol4"
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
 cp "$BIN" "$APP/Contents/MacOS/JBLProtocol4"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+scripts/product-images.sh "$APP/Contents/Resources/ProductImages"
 PB=/usr/libexec/PlistBuddy
 "$PB" -c "Set :CFBundleIdentifier ${JBL_BUNDLE_ID:-local.jblprotocol4}" "$APP/Contents/Info.plist"
 "$PB" -c "Set :CFBundleShortVersionString ${JBL_VERSION:-0.1.0}" "$APP/Contents/Info.plist"

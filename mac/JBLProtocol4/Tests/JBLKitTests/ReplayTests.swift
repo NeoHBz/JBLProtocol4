@@ -49,6 +49,18 @@ final class ReplayTests: XCTestCase {
         XCTAssertEqual(decodeSL1(tlvs[0].value)?.level, 47)
         XCTAssertEqual(try Frame.parse(ackFrame).command, Cmd.set)
     }
+    /// First two TLVs of the captured connect reply: ProductID `5f21`, ColorID `09`.
+    func testProductAndColour() throws {
+        let (_, tlvs) = try parseStatusTLVs(Data(hex: "0000040002005f210500010009")!)
+        XCTAssertEqual(tlvs.map(\.tag), [Tag.productID, Tag.colorID])
+        let pid = try XCTUnwrap(Product.decodePID(tlvs[0].value))
+        XCTAssertEqual(pid, 0x215F)
+        XCTAssertEqual(Product.name(pid: pid), "JBL Tune 780NC")
+        XCTAssertEqual(Product.colourKey(id: Int(tlvs[1].value[0])), "Beige")
+        XCTAssertEqual(Product.colourName(id: 14), "Ghost Black")
+        XCTAssertEqual(Product.colourKey(id: 37), "Teal")
+        XCTAssertNil(Product.colourKey(id: 33))
+    }
     func testRefusesUnverifiedTags() {
         for tag: UInt16 in [0x000F, 0x1F00, 0x0BA0, 0x0B86, 0x100F, 0x0E01, 0x0F82] {
             XCTAssertThrowsError(try buildSet([TLV(tag, byte: 0)]))

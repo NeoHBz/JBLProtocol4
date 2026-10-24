@@ -30,11 +30,18 @@ final class Device: NSObject, ObservableObject {
     @Published var autoOff: AutoOff = .off
     @Published var voicePrompts = false
     @Published var lastError: String?
+    /// Model and colour from the last connect. Kept across disconnects and launches so the panel can still show them.
+    @Published var productID: UInt16? = (UserDefaults.standard.object(forKey: "productID") as? Int).map { UInt16($0) } {
+        didSet { UserDefaults.standard.set(productID.map { Int($0) }, forKey: "productID") }
+    }
+    @Published var colorID: Int? = UserDefaults.standard.object(forKey: "colorID") as? Int {
+        didSet { UserDefaults.standard.set(colorID, forKey: "colorID") }
+    }
 
     private nonisolated let serviceUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0000")
     private nonisolated let writeUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0002")
     private nonisolated let notifyUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0001")
-    private let deviceName = "JBL Tune 780NC"
+    let deviceName = "JBL Tune 780NC"
 
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
@@ -45,7 +52,7 @@ final class Device: NSObject, ObservableObject {
     /// Raw values the device reported at the first full read of this app run, for "Undo changes since app opened".
     private var launch: [UInt16: Data] = [:]
     private var current: [UInt16: Data] = [:]
-    private let stateTags: [UInt16] = [Tag.battery, Tag.anc, Tag.ambient, Tag.talkThru, Tag.voiceAware, Tag.balance,
+    private let stateTags: [UInt16] = [Tag.productID, Tag.colorID, Tag.battery, Tag.anc, Tag.ambient, Tag.talkThru, Tag.voiceAware, Tag.balance,
                                        Tag.spatial, Tag.autoOff, Tag.voicePrompt, Tag.voicePromptLang]
 
     override init() {
@@ -131,6 +138,8 @@ final class Device: NSObject, ObservableObject {
     private func apply(_ tag: UInt16, _ v: Data) {
         current[tag] = v
         switch tag {
+        case Tag.productID: if let pid = Product.decodePID(v), pid != productID { productID = pid }
+        case Tag.colorID: if v.count == 1, Int(v[v.startIndex]) != colorID { colorID = Int(v[v.startIndex]) }
         case Tag.battery: if let s = decodeSL1(v) { battery = s.level }
         case Tag.anc, Tag.ambient, Tag.talkThru:
             let on = v.first == 0xFF

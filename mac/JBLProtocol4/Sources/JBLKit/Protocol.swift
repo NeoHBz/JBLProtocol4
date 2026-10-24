@@ -9,6 +9,8 @@ public enum Cmd {
 }
 
 public enum Tag {
+    public static let productID: UInt16 = 0x0004
+    public static let colorID: UInt16 = 0x0005
     public static let powerOff: UInt16 = 0x0011
     public static let battery: UInt16 = 0x000D
     public static let anc: UInt16 = 0x0018

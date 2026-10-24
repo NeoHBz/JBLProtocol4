@@ -245,7 +245,7 @@ The family follows the protocol, not the chip: the list tags the 780NC `Bes` alt
 ## 12. Product images (code)
 Source: `decompiled/apktool/assets/product_list_readme.txt`, `assets/config/dash4/*.json`, `res/drawable-xxxhdpi/`. The images are JBL artwork: reference them, do not commit them.
 
-ColorID (tag 0x0005) values, from the readme:
+ColorID (tag 0x0005) values. The readme lists 0x00-0x12; the full list is the colour enum in `jadx/sources/cn/f.java` (an unknown ID falls back to Black there), whose names are also the `resourceConfig` keys: 0x13 Champagne, 0x14 Brown, 0x15 SquareBlack, 0x16 SquareWhite, 0x17 SquareBrown, 0x18 Yellow, 0x19 Rose, 0x1a Squad, 0x1b Turquoise, 0x1c PeachOrange, 0x1d BlackGray, 0x1e BlackLime, 0x1f Orange, 0x20 Copper, 0x25 Teal (not 0x21). Mac app: `Sources/JBLKit/Products.swift`.
 
 | ID | Colour | ID | Colour |
 |---|---|---|---|
@@ -275,3 +275,4 @@ Tune 780NC drawables (`jbl_tune_780nc_215f_<colour>[_suffix].webp`, xxxhdpi only
 - The Tune 785NC config reuses the 780NC drawables (`jbl_tune_780nc_215f_white` and others), so one image set covers both.
 - Other models have their own dash4 configs with their own colour sets; drawable naming is not uniform (e.g. `tune_flex_3_black.webp` has no PID), so always resolve through `resourceConfig`.
 - `usingSeverRes` is `false` for the 780NC: the images ship inside the APK, nothing is downloaded.
+- Across all Protocol4 models (`scripts/product-images.sh`): 145 colour photos resolve. Live Beam 4 and Live Flex 4 configs name drawables that are not in the APK; Tune 520BT2 Pink is missing too. Older models (Sense Lite, Endurance Zone, Tune 135BT/235BT, Endurance Run 3, Endurance Pace, Smart Tx) have no `resourceConfig` and only a `deviceImg`.

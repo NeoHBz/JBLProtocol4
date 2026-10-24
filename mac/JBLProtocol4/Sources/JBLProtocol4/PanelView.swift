@@ -49,8 +49,14 @@ struct PanelView: View {
     }
 
     private var header: some View {
-        HStack {
-            Text("JBL Tune 780NC").fontWeight(.bold)
+        HStack(spacing: 10) {
+            productPicture
+            VStack(alignment: .leading, spacing: 2) {
+                Text(d.productID.flatMap(Product.name) ?? d.deviceName).fontWeight(.bold)
+                if let colour = d.colorID.flatMap(Product.colourName) {
+                    Text(colour).font(.system(size: 11)).foregroundStyle(Theme.mute)
+                }
+            }
             Spacer()
             if live, let b = d.battery {
                 HStack(spacing: 8) {
@@ -58,6 +64,21 @@ struct PanelView: View {
                     Text("\(b)%").monospacedDigit()
                 }
             }
+        }
+    }
+
+    /// The model's photo in its reported colour; a headphones symbol when the build has no photos or the model has none.
+    @ViewBuilder private var productPicture: some View {
+        if let img = ProductImage.image(pid: d.productID, colorID: d.colorID) {
+            Image(nsImage: img).resizable().interpolation(.high).aspectRatio(contentMode: .fit)
+                .frame(width: 48, height: 48)
+                .opacity(live ? 1 : 0.5)
+        } else {
+            Image(systemName: "headphones")
+                .font(.system(size: 20))
+                .foregroundStyle(Theme.mute)
+                .frame(width: 48, height: 48)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Theme.fill))
         }
     }
 
