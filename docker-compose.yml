@@ -1,7 +1,7 @@
 services:
   re:
     build: .
-    container_name: jbl780nc-re
+    container_name: jbl-protocol4
     volumes:
       - ./:/work
     working_dir: /work

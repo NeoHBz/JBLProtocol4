@@ -1,6 +1,6 @@
-# jbl780nc-re
+# jbl-protocol4
 
-Unofficial, independent research into how the JBL Headphones app talks to the **JBL Tune 780NC** over Bluetooth Low Energy, with the aim of a macOS menu bar alternative.
+Unofficial, independent research into the "Protocol4" control protocol the JBL Headphones app uses over Bluetooth Low Energy for recent JBL headphones and earbuds, with the aim of a macOS menu bar alternative. Reverse engineered and tested on the **JBL Tune 780NC**; see [Device family](#device-family) for the other models that share it.
 Not affiliated with or endorsed by JBL or Harman. JBL and Harman are trademarks of their respective owners. This is independent interoperability research on the author's own device, and it comes with no warranty: use at your own risk, you are responsible for your own device.
 
 ## Device family
