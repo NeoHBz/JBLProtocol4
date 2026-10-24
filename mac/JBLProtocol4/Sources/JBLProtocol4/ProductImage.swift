@@ -1,8 +1,8 @@
 import AppKit
 import JBLKit
 
-/// Product photos copied into the app at build time by scripts/product-images.sh, named `<pid>_<Colour>.<ext>`
-/// with `<pid>.<ext>` as the model's default. A build without them (CI, no decompiled app) gets nil and shows a symbol.
+/// Product photos from ProductImages/, copied into the app by scripts/bundle.sh, named `<pid>_<Colour>.<ext>`
+/// with `<pid>.<ext>` as the model's default. A model with no photo gets nil and shows a symbol.
 @MainActor
 enum ProductImage {
     private static let folder = Bundle.main.resourceURL?.appendingPathComponent("ProductImages")

@@ -23,10 +23,10 @@ or leave them alone. The certificate lives in your keychain, never in a file in 
 
 ## Product photos
 The panel shows the connected model's photo in the colour the headphones report (ProductID and ColorID, read on connect).
-The photos are JBL's, so they are not in the repo: every build copies them out of your own decompiled JBL app
-(`scripts/product-images.sh`, about 9 MB, every Protocol4 model and colour). It looks in `decompiled/apktool` at the main
-checkout's root, or in `JBL_APK_DIR`. Without that folder (CI, a fresh clone) the build still works and the panel shows a
-headphones symbol. Live Beam 4 and Live Flex 4 have no photo in the app and always show the symbol.
+The photos are in `ProductImages/` (about 9 MB, every Protocol4 model and colour) and every build, CI and releases included,
+copies them into the app. They belong to Harman/JBL and are not under this project's license: see `ProductImages/README.md`
+for ownership and the disclaimer. To refresh them from a newer decompiled JBL app, run `scripts/product-images.sh`.
+Live Beam 4 and Live Flex 4 have no photo in the JBL app and always show a headphones symbol.
 
 ## GitHub Actions
 `.github/workflows/build.yml` runs the tests and builds a zip on every push and pull request. It works with no setup and signs
