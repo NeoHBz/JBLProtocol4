@@ -62,7 +62,7 @@ Builder: `AssembleCmd4.generateCmdList` (`com/harman/protocol4/AssembleCmd4.java
 | Tag | Name | Type | Capture value | Confidence |
 |---|---|---|---|---|
 | 0x0004 | ProductID | 2 B | `5f21` = 0x215f | both |
-| 0x0005 | ColorID | 1 B | `09` | both |
+| 0x0005 | ColorID | 1 B | `09` = Beige (section 12) | both |
 | 0x0008 | LeftDeviceSerialNumber | ASCII | device serial (not recorded here) | both |
 | 0x000a | MACAddress | 6 B | | both |
 | 0x000c | FirmwareVersion | 3 B | `19 2b 0a` read as bytes; version formatting not decoded | both (tag), capture (meaning of bytes) |
@@ -241,3 +241,37 @@ The family follows the protocol, not the chip: the list tags the 780NC `Bes` alt
 - `TourOneM4Control` and `TourPro4Control` exist in the protocol4 folder but no entry in the bundled list points at them (the list may be updated from a server).
 - Not in this family: older models on the `airoha`, `bes`, `lea`, `protocol3` controllers (e.g. Tune 770NC, Live 770NC).
 - [ ] Confirm the family on a second model (Tune 680NC or 785NC): same framing, GET ProductID returns its PID.
+
+## 12. Product images (code)
+Source: `decompiled/apktool/assets/product_list_readme.txt`, `assets/config/dash4/*.json`, `res/drawable-xxxhdpi/`. The images are JBL artwork: reference them, do not commit them.
+
+ColorID (tag 0x0005) values, from the readme:
+
+| ID | Colour | ID | Colour |
+|---|---|---|---|
+| 0x00 | Black | 0x09 | Beige |
+| 0x01 | White | 0x0a | Pink |
+| 0x02 | Blue | 0x0b | Chrome |
+| 0x03 | Red | 0x0c | Rose Gold |
+| 0x04 | Green | 0x0d | Coral |
+| 0x05 | Purple | 0x0e | Ghost Black |
+| 0x06 | Gold Silver | 0x0f | Ghost Purple |
+| 0x07 | Silver | 0x10 | Ghost White |
+| 0x08 | Grey | 0x11 | Mint |
+| | | 0x12 | Black TML |
+
+The 780NC returns `09` = Beige.
+- [ ] Confirm the test unit is beige.
+
+How the app picks an image: the model's dash4 config (`dash4Config` in product_list.json, `jbl_tune_780nc.json` for the 780NC) has a `resourceConfig` object keyed by colour name (`Beige`, `Black`, `Blue`, `Purple`, `White`). Each colour lists drawable names for each screen: `device`, `welcome`, `gestureLeft`, `gestureRight`, `findMyBudLeft`, `enterPairingImage`, `personifyHearingTestLeft`, and a `dashboardBackground` gradient (two ARGB colours). The `deviceImg` field in product_list.json points at a 770NC image (`device_img_tune_770nc_black`) for the 780NC; which screen still uses it is not checked.
+
+Tune 780NC drawables (`jbl_tune_780nc_215f_<colour>[_suffix].webp`, xxxhdpi only):
+- `<colour>`: three-quarter view of the whole headset, 726×726, about 17 KB. Used for `device` and `welcome`.
+- `<colour>_left`: 968×968, used for the hearing test.
+- `<colour>_left_gesture`, `<colour>_right_gesture`: used for the gestures screen.
+- `enter_pairing`: one image for every colour, 1125×960.
+- Colours present: beige, black, blue, purple, white (matches `resourceConfig`).
+
+- The Tune 785NC config reuses the 780NC drawables (`jbl_tune_780nc_215f_white` and others), so one image set covers both.
+- Other models have their own dash4 configs with their own colour sets; drawable naming is not uniform (e.g. `tune_flex_3_black.webp` has no PID), so always resolve through `resourceConfig`.
+- `usingSeverRes` is `false` for the 780NC: the images ship inside the APK, nothing is downloaded.
