@@ -64,6 +64,12 @@ final class ReplayTests: XCTestCase {
         XCTAssertTrue(Product.isFamily(name: "JBL TUNE 680NC"))
         XCTAssertFalse(Product.isFamily(name: "JBL Tune 770NC"))
         XCTAssertFalse(Product.isFamily(name: "Tune 780NC"))
+        for f: Product.Feature in [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance, .autoOff, .voicePrompts, .powerOff] {
+            XCTAssertTrue(Product.supports(f, pid: 0x215F), "780NC has every panel control")
+            XCTAssertTrue(Product.supports(f, pid: nil), "unknown model keeps every control")
+        }
+        XCTAssertFalse(Product.supports(.anc, pid: 0x2162), "Tune 530BT has no ANC")
+        XCTAssertFalse(Product.supports(.balance, pid: 0x21B3), "Vibe Buds 3 uses the other balance card")
     }
     func testRefusesUnverifiedTags() {
         for tag: UInt16 in [0x000F, 0x1F00, 0x0BA0, 0x0B86, 0x100F, 0x0E01, 0x0F82] {

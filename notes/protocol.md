@@ -241,6 +241,7 @@ The family follows the protocol, not the chip: the list tags the 780NC `Bes` alt
 - `TourOneM4Control` and `TourPro4Control` exist in the protocol4 folder but no entry in the bundled list points at them (the list may be updated from a server).
 - Not in this family: older models on the `airoha`, `bes`, `lea`, `protocol3` controllers (e.g. Tune 770NC, Live 770NC).
 - [ ] Confirm the family on a second model (Tune 680NC or 785NC): same framing, GET ProductID returns its PID.
+- Per-model features: each dash4 config's `uiFeatures` lists the cards the app shows (`ANC`, `AA`, `TT`, `VoiceAwareCard`, `Spatial3DCard`, `LeftRightBalanceCard`, `AutoPowerOffCard`, `VoicePromptCard`, ...), and `isSupportConfig` in product_list.json adds flags such as `DashBoardPowerOff`. Some models use look-alike cards (`LeftRightBalance2Card`, `SpatialSoundWithHeadTrackCard`, `PowerSavingCard`) whose values are not verified. The Mac app's table: `Sources/JBLKit/Products.swift`, `features`.
 
 ## 12. Product images (code)
 Source: `decompiled/apktool/assets/product_list_readme.txt`, `assets/config/dash4/*.json`, `res/drawable-xxxhdpi/`. The images are JBL artwork: reference them, do not commit them.

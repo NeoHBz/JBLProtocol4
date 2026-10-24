@@ -13,27 +13,32 @@ struct PanelView: View {
     @State private var balanceDraft = 0.0
 
     private var live: Bool { d.link == .ready }
+    private func has(_ f: Product.Feature) -> Bool { Product.supports(f, pid: d.productID) }
+    /// Noise modes the connected model lacks. Off is always there when any of the others is.
+    private var noiseMissing: Set<NoiseMode> {
+        Set([(NoiseMode.anc, Product.Feature.anc), (.ambient, .ambient), (.talkThru, .talkThru)].filter { !has($0.1) }.map(\.0))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             header
             Segments(options: [("ANC", NoiseMode.anc), ("Ambient", .ambient), ("TalkThru", .talkThru), ("Off", .off)],
-                     selection: d.noise, onSelect: d.setNoise)
-                .disabled(!live)
+                     selection: d.noise, unavailable: noiseMissing, onSelect: d.setNoise)
+                .available(noiseMissing.count < 3, live: live, model: d.productID)
             Divider().overlay(Theme.line)
             SwitchRow(title: "Voice Aware", isOn: d.voiceAware != nil) { d.setVoiceAware($0 ? .low : nil) }
-                .disabled(!live)
+                .available(has(.voiceAware), live: live, model: d.productID)
             if let level = d.voiceAware {
                 Segments(options: [("Low", VoiceAwareLevel.low), ("Mid", .mid), ("High", .high)],
                          selection: level, onSelect: { d.setVoiceAware($0) })
-                    .disabled(!live)
+                    .available(has(.voiceAware), live: live, model: d.productID)
             }
             SwitchRow(title: "Spatial Sound", isOn: d.spatial != nil) { d.setSpatial($0 ? .music : nil) }
-                .disabled(!live)
+                .available(has(.spatial), live: live, model: d.productID)
             if let mode = d.spatial {
                 Segments(options: [("Music", SpatialMode.music), ("Movie", .movie), ("Game", .game)],
                          selection: mode, onSelect: { d.setSpatial($0) })
-                    .disabled(!live)
+                    .available(has(.spatial), live: live, model: d.productID)
             }
             Divider().overlay(Theme.line)
             moreToggle
@@ -100,7 +105,7 @@ struct PanelView: View {
     @ViewBuilder private var moreRows: some View {
         // Off also centres it: the slider has no marks, so an off-centre value kept from before would be hard to read later.
         SwitchRow(title: "Balance", isOn: d.balanceOn) { d.setBalance($0 ? d.balance : 0, on: $0) }
-            .disabled(!live)
+            .available(has(.balance), live: live, model: d.productID)
         if d.balanceOn {
             HStack {
                 Text("L").font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.mute)
@@ -110,12 +115,12 @@ struct PanelView: View {
                 .tint(Theme.accent)
                 Text("R").font(.system(size: 10, weight: .medium)).foregroundStyle(Theme.mute)
             }
-            .disabled(!live)
+            .available(has(.balance), live: live, model: d.productID)
             .onAppear { balanceDraft = Double(d.balance) }
             .onChange(of: d.balance) { _, v in balanceDraft = Double(v) }
         }
         HStack {
-            Text("Auto power off")
+            Text("Auto power off").foregroundStyle(live && has(.autoOff) ? Theme.ink : Theme.mute)
             Spacer()
             Picker("Auto power off", selection: Binding(get: { d.autoOff }, set: { d.setAutoOff($0) })) {
                 Text("Off").tag(AutoOff.off)
@@ -125,9 +130,9 @@ struct PanelView: View {
             }
             .labelsHidden().fixedSize()
         }
-        .disabled(!live)
+        .available(has(.autoOff), live: live, model: d.productID)
         SwitchRow(title: "Voice prompts", isOn: d.voicePrompts) { d.setVoicePrompts($0) }
-            .disabled(!live)
+            .available(has(.voicePrompts), live: live, model: d.productID)
         Button("Undo changes since app opened") { d.restoreLaunchState() }
             .buttonStyle(OutlineButtonStyle()).disabled(!d.canRestore)
             .help("Put back the settings the headphones had when this app opened")
@@ -149,8 +154,9 @@ struct PanelView: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .disabled(!live)
-            .help(armed ? "Click again to power off" : "Power off")
+            .disabled(!live || !has(.powerOff))
+            .opacity(has(.powerOff) ? 1 : 0.4)
+            .help(!has(.powerOff) ? unavailableText(d.productID) : armed ? "Click again to power off" : "Power off")
             .accessibilityLabel(armed ? "Click again to power off" : "Power off")
         }
         .font(.system(size: 10))
@@ -170,5 +176,16 @@ struct PanelView: View {
                 if !Task.isCancelled { armed = false }
             }
         }
+    }
+}
+
+private func unavailableText(_ pid: UInt16?) -> String {
+    "Not available on the \(pid.flatMap(Product.name) ?? "connected model")"
+}
+
+private extension View {
+    /// Greys out a control while disconnected, or always when the connected model does not have it (with a tooltip).
+    func available(_ supported: Bool, live: Bool, model: UInt16?) -> some View {
+        disabled(!live || !supported).help(supported ? "" : unavailableText(model))
     }
 }

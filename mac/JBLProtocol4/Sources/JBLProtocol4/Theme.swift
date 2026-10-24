@@ -40,24 +40,30 @@ extension Color {
 struct Segments<T: Hashable>: View {
     let options: [(String, T)]
     let selection: T
+    /// Options shown greyed out and skipped by taps and arrow keys (the model does not have them).
+    var unavailable: Set<T> = []
     let onSelect: (T) -> Void
+    @Environment(\.isEnabled) private var enabled
 
     var body: some View {
         HStack(spacing: 2) {
             ForEach(options.indices, id: \.self) { i in
                 let on = options[i].1 == selection
+                let off = unavailable.contains(options[i].1)
                 Text(options[i].0)
                     .font(.system(size: 11.5, weight: on ? .bold : .regular))
-                    .foregroundStyle(on ? Theme.accentInk : Theme.ink)
+                    .foregroundStyle(on ? Theme.accentInk : off ? Theme.mute : Theme.ink)
+                    .opacity(off ? 0.5 : 1)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 7)
                     .background(RoundedRectangle(cornerRadius: 7).fill(on ? Theme.accent : .clear))
                     .contentShape(Rectangle())
-                    .onTapGesture { onSelect(options[i].1) }
+                    .onTapGesture { if !off { onSelect(options[i].1) } }
             }
         }
         .padding(3)
         .background(RoundedRectangle(cornerRadius: 9).fill(Theme.fill))
+        .opacity(enabled ? 1 : 0.5)
         .focusable()
         .onKeyPress(.leftArrow) { step(-1) }
         .onKeyPress(.rightArrow) { step(1) }
@@ -65,8 +71,9 @@ struct Segments<T: Hashable>: View {
 
     private func step(_ by: Int) -> KeyPress.Result {
         guard let i = options.firstIndex(where: { $0.1 == selection }) else { return .ignored }
-        let j = min(max(i + by, 0), options.count - 1)
-        if j != i { onSelect(options[j].1) }
+        var j = i + by
+        while options.indices.contains(j), unavailable.contains(options[j].1) { j += by }
+        if options.indices.contains(j) { onSelect(options[j].1) }
         return .handled
     }
 }
@@ -97,10 +104,11 @@ struct SwitchRow: View {
     let title: String
     let isOn: Bool
     let onChange: (Bool) -> Void
+    @Environment(\.isEnabled) private var enabled
 
     var body: some View {
         HStack {
-            Text(title)
+            Text(title).foregroundStyle(enabled ? Theme.ink : Theme.mute)
             Spacer()
             Switch(isOn: isOn, onChange: onChange)
         }

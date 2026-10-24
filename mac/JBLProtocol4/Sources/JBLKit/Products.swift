@@ -24,6 +24,59 @@ public enum Product {
         colours[id].map { $0.replacingOccurrences(of: "([a-z])([A-Z])", with: "$1 $2", options: .regularExpression) }
     }
 
+    /// Controls the panel offers. Each maps to the JBL app's card for it, the one the 780NC uses.
+    public enum Feature { case anc, ambient, talkThru, voiceAware, spatial, balance, autoOff, voicePrompts, powerOff }
+
+    /// Whether the model has the control, by the JBL app's own per-model card list. An unknown model gets everything,
+    /// as before models were told apart.
+    public static func supports(_ f: Feature, pid: UInt16?) -> Bool {
+        guard let pid, let s = features[pid] else { return true }
+        return s.contains(f)
+    }
+
+    /// From each model's dash4 config `uiFeatures` (cards not marked `visible: false`) plus `isSupportConfig` in
+    /// product_list.json: ANC, AA, TT, VoiceAwareCard, Spatial3DCard, LeftRightBalanceCard, AutoPowerOffCard,
+    /// VoicePromptCard, DashBoardPowerOff. Look-alike cards (LeftRightBalance2Card, SpatialSoundWithHeadTrackCard,
+    /// PowerSavingCard) do not count: their values may differ from what was verified on the 780NC.
+    private static let features: [UInt16: Set<Feature>] = [
+        0x2101: [.anc, .ambient, .talkThru, .voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tour One M3
+        0x2133: [.balance, .autoOff, .voicePrompts, .powerOff], // JBL Sense Lite
+        0x2134: [.balance, .autoOff, .voicePrompts, .powerOff], // JBL Endurance Zone
+        0x2135: [.voiceAware, .balance, .voicePrompts, .powerOff], // JBL Tune 135BT
+        0x2136: [.voiceAware, .balance, .voicePrompts, .powerOff], // JBL Tune 235BT
+        0x2152: [.balance, .autoOff, .voicePrompts], // JBL Soundgear Clips
+        0x2154: [.balance, .autoOff, .voicePrompts], // JBL Junior Free
+        0x214F: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Endurance Run 3 Wireless
+        0x2150: [.balance, .autoOff, .voicePrompts], // JBL Endurance Pace
+        0x2151: [.voiceAware, .spatial, .balance, .voicePrompts], // JBL Endurance Peak 4
+        0x2153: [.spatial, .balance, .autoOff, .voicePrompts, .powerOff], // JBL Sense Pro
+        0x2162: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tune 530BT
+        0x2189: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tune 530BT
+        0x2163: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tune 730BT
+        0x215E: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance, .autoOff, .voicePrompts, .powerOff], // JBL Tune 680NC
+        0x215F: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance, .autoOff, .voicePrompts, .powerOff], // JBL Tune 780NC
+        0x214B: [.powerOff], // JBL Smart Tx
+        0x2160: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .autoOff, .voicePrompts], // JBL Live 680NC
+        0x2161: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .autoOff, .voicePrompts], // JBL Live 780NC
+        0x2179: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance], // JBL Live Beam 4
+        0x217B: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance], // JBL Live Buds 4
+        0x217D: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance], // JBL Live Flex 4
+        0x21A4: [.anc, .ambient, .talkThru, .voiceAware, .spatial, .balance, .autoOff, .voicePrompts, .powerOff], // JBL Tune 785NC
+        0x2188: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tune 520BT2
+        0x2194: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tune 535BT
+        0x2195: [.voiceAware, .balance, .autoOff, .voicePrompts], // JBL Tune 735BT
+        0x21B3: [.anc, .ambient, .talkThru, .voiceAware], // JBL Vibe Buds 3
+        0x21B4: [.anc, .ambient, .talkThru, .voiceAware], // JBL Vibe Beam 3
+        0x21B2: [.anc, .ambient, .talkThru, .voiceAware], // JBL Vibe Flex 3
+        0x21AB: [.anc, .ambient, .talkThru, .voiceAware], // JBL Wave Buds 3
+        0x21AC: [.anc, .ambient, .talkThru, .voiceAware], // JBL Wave Beam 3
+        0x21AD: [.anc, .ambient, .talkThru, .voiceAware], // JBL Wave Flex 3
+        0x21B7: [.anc, .ambient, .talkThru, .voiceAware, .spatial], // JBL Tune Buds 3
+        0x21B8: [.anc, .ambient, .talkThru, .voiceAware, .spatial], // JBL Tune Beam 3
+        0x21B9: [.anc, .ambient, .talkThru, .voiceAware, .spatial], // JBL Tune Beam 3
+        0x21B6: [.anc, .ambient, .talkThru, .voiceAware, .spatial], // JBL Tune Flex 3
+    ]
+
     private static let names: [UInt16: String] = [
         0x215E: "JBL Tune 680NC", 0x215F: "JBL Tune 780NC", 0x21A4: "JBL Tune 785NC",
         0x2160: "JBL Live 680NC", 0x2161: "JBL Live 780NC",
