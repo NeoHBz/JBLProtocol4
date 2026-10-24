@@ -179,7 +179,8 @@ Drop: LE Audio, Auracast, Smart Audio & Video, EQ (for now).
 - [ ] Mac control link at the same time as the phone: user reports the headphones already hold audio connections to an iPhone and a Mac at once (multipoint), so two hosts are possible. Whether the **control channel** (GATT) accepts a second host is untested, Stage 5 will test it.
 - [ ] Bond needed for GATT control: partial answer. An unbonded Mac got no replies (19:37). After forgetting the Mac and connecting while the headphones were in pairing mode, replies worked (19:46). Retest 19:53 outside pairing mode (bond present, audio re-paired): replies work, so pairing mode itself is not required. Bond test 19:56: after forgetting the LE-only 'Bluetooth Device' entry (audio entry kept), replies STILL work, so that separate entry is not what the channel depends on. What changed between the failing runs (19:31, 19:37) and all later runs is only that the Mac was re-paired for audio (fresh keys), so the cause is a fresh pairing / stale old pairing, not proven which.
 - [ ] What `0xb006` writes contain (expected: notification enable)
-- [ ] Which control class (protocol4 General4Control / airoha / lea) the 780NC uses and its supported-feature list
+- [x] (answered 2026-10-24, code: `product_list.json` maps the 780NC to `protocol4.Tune680Control`, a subclass of `General4Control`; see section 11) Which control class (protocol4 General4Control / airoha / lea) the 780NC uses
+- [ ] The 780NC's supported-feature list (per-model config `assets/config/dash4/jbl_tune_780nc.json`, not yet read)
 - [ ] Smart Audio & Video value layout (0x100f)
 - [ ] Spatial Sound mode numbers (1 sample each)
 - [ ] Auto Power Off non-standard durations
@@ -193,3 +194,50 @@ Drop: LE Audio, Auracast, Smart Audio & Video, EQ (for now).
 - [ ] Tag 0x0e81 (4 phone writes, `810e 0200 0800`-style) is not in the app's feature table lookup I used. EQ related, not needed.
 
 - Device normalises on-off values (observed 2026-10-24, Mac): voice prompt level bits are not kept (SET `ff`/`7f` reads back `80`/`00`); Auto Power Off "off" reads back with the default 30 min (`0807`) whatever duration was written. Compare status bits, not whole bytes.
+
+## 11. Device family (code)
+Source: `decompiled/apktool/assets/product_list.json` (`cmdCtrlList`, `platform`, `pidS`). Every model below uses a controller in `com/harman/cmdctrl/imp/control/u3/protocol4/`. Each controller is a thin subclass of `General4Control` (`Tune680Control.java` is 53 lines, `General4Control.java` 1777), so the framing in section 2 applies to all of them. Only the Tune 780NC is verified on hardware. The tags each model supports differ (earbuds, no ANC, etc.), so a client must identify the model by PID (tag 0x0004 ProductID, section 5; the 780NC returns `5f21` = 0x215f) and gate features per model.
+
+The family follows the protocol, not the chip: the list tags the 780NC `Bes` although its firmware string says Airoha `AB157x` (stage1-findings.md), and the Tune 5xx/7xxBT entries are `Rtk` (Realtek).
+
+| Controller | Model | Platform | PID |
+|---|---|---|---|
+| Tune680Control | JBL Tune 680NC | Bes | 215E |
+| Tune680Control | **JBL Tune 780NC** | Bes | 215F |
+| Tune680Control | JBL Tune 785NC | Bes | 21A4 |
+| Live680NCControl | JBL Live 680NC | Bes | 2160 |
+| Live680NCControl | JBL Live 780NC | Bes | 2161 |
+| Tune530Control | JBL Tune 520BT2 | Rtk | 2188 |
+| Tune530Control | JBL Tune 530BT | Rtk | 2162 |
+| Tune530Control | JBL Tune 535BT | Rtk | 2194 |
+| Tune530Control | JBL Tune 730BT | Rtk | 2163 |
+| Tune530Control | JBL Tune 735BT | Rtk | 2195 |
+| TourOneM3Control | JBL Tour One M3 | Bes | 2101 |
+| TourOneM3Control | JBL Sense Lite | Bes | 2133 |
+| TourOneM3Control | JBL Endurance Zone | Bes | 2134 |
+| TourOneM3Control | JBL Tune 135BT | Bes | 2135 |
+| TourOneM3Control | JBL Tune 235BT | Bes | 2136 |
+| LiveTws4Control | JBL Live Beam 4 | Bes | 2179 |
+| LiveTws4Control | JBL Live Buds 4 | Bes | 217b |
+| LiveTws4Control | JBL Live Flex 4 | Bes | 217d |
+| TuneFlex3Control | JBL Tune Flex 3 | Bes | 21B6 |
+| TuneFlex3Control | JBL Tune Buds 3 | Bes | 21B7 |
+| TuneBeam3Control | JBL Tune Beam 3 | Bes | 21B8 |
+| WaveFlex3Control | JBL Vibe Flex 3 | Bes | 21B2 |
+| WaveFlex3Control | JBL Vibe Buds 3 | Bes | 21B3 |
+| WaveFlex3Control | JBL Vibe Beam 3 | Bes | 21B4 |
+| WaveFlex3Control | JBL Wave Buds 3 | Bes | 21AB |
+| WaveFlex3Control | JBL Wave Beam 3 | Bes | 21AC |
+| WaveFlex3Control | JBL Wave Flex 3 | Bes | 21AD |
+| EndurancePaceControl | JBL Endurance Pace | Bes | 2150 |
+| EndurancePeak4Control | JBL Endurance Peak 4 | Rtk | 2151 |
+| EnduranceRun3Control | JBL Endurance Run 3 Wireless | Bes | 214F |
+| JuniorFreeControl | JBL Junior Free | Bes | 2154 |
+| SenseProControl | JBL Sense Pro | Bes | 2153 |
+| SoundgearClipControl | JBL Soundgear Clips | Bes | 2152 |
+| SmartTxControl | JBL Smart Tx | Bes | 214B |
+
+- Closest siblings: Tune 680NC and 785NC (same controller class as the 780NC). Best next candidates.
+- `TourOneM4Control` and `TourPro4Control` exist in the protocol4 folder but no entry in the bundled list points at them (the list may be updated from a server).
+- Not in this family: older models on the `airoha`, `bes`, `lea`, `protocol3` controllers (e.g. Tune 770NC, Live 770NC).
+- [ ] Confirm the family on a second model (Tune 680NC or 785NC): same framing, GET ProductID returns its PID.
