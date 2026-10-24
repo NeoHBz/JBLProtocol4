@@ -4,6 +4,8 @@ import JBLKit
 /// Layout A1 ("Fold-out"): everyday controls on top, rarely used ones behind "More settings", power off in the footer.
 struct PanelView: View {
     @EnvironmentObject var d: Device
+    /// Tells the window how tall the panel wants to be, so the window follows "More settings" opening and closing.
+    var onHeight: (CGFloat) -> Void = { _ in }
     @State private var more = false
     @State private var armed = false
     @State private var armTask: Task<Void, Never>?
@@ -26,6 +28,9 @@ struct PanelView: View {
         .frame(width: 320)
         .disabled(false)
         .opacity(d.link == .poweredOff ? 0.6 : 1)
+        .fixedSize(horizontal: false, vertical: true)
+        .background(GeometryReader { Color.clear.preference(key: HeightKey.self, value: $0.size.height) })
+        .onPreferenceChange(HeightKey.self) { onHeight($0) }
     }
 
     private var header: some View {
@@ -158,6 +163,11 @@ struct BatteryGlyph: View {
                 .frame(width: max(2, 38 * CGFloat(percent) / 100), height: 7).padding(.leading, 3)
         }
     }
+}
+
+private struct HeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 enum Theme {

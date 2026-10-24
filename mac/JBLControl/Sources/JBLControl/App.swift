@@ -26,7 +26,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let device = Device()
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private var panel: PanelWindow?
-    private var sizeObserver: NSKeyValueObservation?
     private var outsideClick: Any?
     private var cancellables = Set<AnyCancellable>()
 
@@ -52,8 +51,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func open() {
         // A fresh panel each time, so "More settings" always starts collapsed.
-        let host = NSHostingController(rootView: PanelView().environmentObject(device))
-        host.sizingOptions = [.preferredContentSize]
+        let host = NSHostingController(rootView: PanelView(onHeight: { [weak self] h in
+            Task { @MainActor in self?.resize(height: h) }
+        }).environmentObject(device))
+        host.sizingOptions = []
         let size = host.sizeThatFits(in: NSSize(width: 320, height: 10_000))
         host.view.frame.size = size
 
@@ -69,6 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             host.view.topAnchor.constraint(equalTo: background.topAnchor),
             host.view.leadingAnchor.constraint(equalTo: background.leadingAnchor),
             host.view.trailingAnchor.constraint(equalTo: background.trailingAnchor),
+            host.view.bottomAnchor.constraint(equalTo: background.bottomAnchor),
         ])
 
         let w = PanelWindow(contentRect: NSRect(origin: .zero, size: size),
@@ -83,10 +85,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel = w
 
         place(w, size: size)
-        sizeObserver = host.observe(\.preferredContentSize, options: [.new]) { [weak self, weak w] _, change in
-            guard let size = change.newValue, size.height > 0 else { return }
-            Task { @MainActor in if let self, let w { self.place(w, size: size) } }
-        }
         w.makeKeyAndOrderFront(nil)
         // Start with nothing focused; the first Tab then lands on the first control (ANC).
         DispatchQueue.main.async { w.makeFirstResponder(nil) }
@@ -110,13 +108,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         w.setFrame(NSRect(x: x, y: top - size.height, width: size.width, height: size.height), display: true, animate: false)
     }
 
+    private func resize(height: CGFloat) {
+        guard let w = panel, height > 0, abs(w.frame.height - height) > 0.5 else { return }
+        place(w, size: NSSize(width: 320, height: height))
+    }
+
     private func iconContains(_ p: NSPoint) -> Bool {
         guard let b = item.button, let w = b.window else { return false }
         return w.convertToScreen(b.convert(b.bounds, to: nil)).insetBy(dx: -4, dy: -4).contains(p)
     }
 
     private func close() {
-        sizeObserver = nil
         panel?.orderOut(nil)
         panel = nil
         if let m = outsideClick { NSEvent.removeMonitor(m); outsideClick = nil }
