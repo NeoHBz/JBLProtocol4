@@ -169,6 +169,15 @@ enum Theme {
 struct Segments<T: Hashable>: View {
     @Binding var selection: T
     let options: [(String, T)]
+
+    /// One tab stop for the whole control, sitting on the active option; the arrow keys move between options.
+    private func step(_ by: Int) -> KeyPress.Result {
+        guard let i = options.firstIndex(where: { $0.1 == selection }) else { return .ignored }
+        let j = min(max(i + by, 0), options.count - 1)
+        if j != i { selection = options[j].1 }
+        return .handled
+    }
+
     var body: some View {
         HStack(spacing: 2) {
             ForEach(options.indices, id: \.self) { i in
@@ -180,10 +189,13 @@ struct Segments<T: Hashable>: View {
                         .frame(maxWidth: .infinity).padding(.vertical, 6)
                         .background(RoundedRectangle(cornerRadius: 7).fill(on ? Theme.accent : Color.clear))
                         .contentShape(Rectangle())
-                }.buttonStyle(.plain)
+                }.buttonStyle(.plain).focusable(false)
             }
         }
         .padding(3)
+        .focusable()
+        .onKeyPress(.leftArrow) { step(-1) }
+        .onKeyPress(.rightArrow) { step(1) }
         .background(RoundedRectangle(cornerRadius: 9).fill(Color.primary.opacity(0.1)))
     }
 }
