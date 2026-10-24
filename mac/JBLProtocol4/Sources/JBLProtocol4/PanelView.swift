@@ -52,7 +52,7 @@ struct PanelView: View {
         HStack(spacing: 10) {
             productPicture
             VStack(alignment: .leading, spacing: 2) {
-                Text(d.productID.flatMap(Product.name) ?? d.deviceName).fontWeight(.bold)
+                Text(d.productID.flatMap(Product.name) ?? d.peripheralName ?? "JBL headphones").fontWeight(.bold)
                 if let colour = d.colorID.flatMap(Product.colourName) {
                     Text(colour).font(.system(size: 11)).foregroundStyle(Theme.mute)
                 }

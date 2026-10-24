@@ -1,6 +1,6 @@
 import Foundation
 
-/// Frame encoder and parser for the JBL Tune 780NC "protocol4". Bytes only, never talks to a device.
+/// Frame encoder and parser for JBL "protocol4", verified on the Tune 780NC. Bytes only, never talks to a device.
 /// Spec: notes/protocol.md. Mirrors proto/jbl_proto.py, which the tests below replay against captured frames.
 public enum Cmd {
     public static let get: UInt16 = 0x0001

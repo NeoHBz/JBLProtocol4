@@ -60,6 +60,10 @@ final class ReplayTests: XCTestCase {
         XCTAssertEqual(Product.colourName(id: 14), "Ghost Black")
         XCTAssertEqual(Product.colourKey(id: 37), "Teal")
         XCTAssertNil(Product.colourKey(id: 33))
+        XCTAssertTrue(Product.isFamily(name: "JBL Tune 780NC"))
+        XCTAssertTrue(Product.isFamily(name: "JBL TUNE 680NC"))
+        XCTAssertFalse(Product.isFamily(name: "JBL Tune 770NC"))
+        XCTAssertFalse(Product.isFamily(name: "Tune 780NC"))
     }
     func testRefusesUnverifiedTags() {
         for tag: UInt16 in [0x000F, 0x1F00, 0x0BA0, 0x0B86, 0x100F, 0x0E01, 0x0F82] {

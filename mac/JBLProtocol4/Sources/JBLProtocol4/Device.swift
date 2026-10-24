@@ -41,7 +41,10 @@ final class Device: NSObject, ObservableObject {
     private nonisolated let serviceUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0000")
     private nonisolated let writeUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0002")
     private nonisolated let notifyUUID = CBUUID(string: "65786365-6c70-6f69-6e74-2e636f6d0001")
-    let deviceName = "JBL Tune 780NC"
+    /// Bluetooth name of the headphones in use, shown until the device has reported its ProductID.
+    @Published var peripheralName: String? = UserDefaults.standard.string(forKey: "peripheralName") {
+        didSet { UserDefaults.standard.set(peripheralName, forKey: "peripheralName") }
+    }
 
     private var central: CBCentralManager!
     private var peripheral: CBPeripheral?
@@ -190,7 +193,7 @@ extension Device: CBCentralManagerDelegate {
     nonisolated func centralManager(_ c: CBCentralManager, didDiscover p: CBPeripheral, advertisementData: [String: Any], rssi: NSNumber) {
         MainActor.assumeIsolated {
             let name = (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? p.name
-            if name == deviceName { connect(p) }
+            if let name, Product.isFamily(name: name) { peripheralName = name; connect(p) }
         }
     }
 

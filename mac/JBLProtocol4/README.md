@@ -1,6 +1,7 @@
 # JBL Protocol4
 
-Menu bar app for the JBL Tune 780NC (layout "A1"). Swift package, built with `make`, no Xcode project.
+Menu bar app for JBL Protocol4 headphones (layout "A1"). It connects to any model in the family (`notes/protocol.md`
+section 11) but is only tested on the Tune 780NC; other models show every 780NC control whether they support it or not. Swift package, built with `make`, no Xcode project.
 
     cd mac/JBLProtocol4
     make cert        # once: creates a self-signed signing certificate in your keychain (no Apple account)

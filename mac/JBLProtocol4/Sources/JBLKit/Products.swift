@@ -10,6 +10,12 @@ public enum Product {
 
     public static func name(pid: UInt16) -> String? { names[pid] }
 
+    /// Whether an advertised Bluetooth name is a Protocol4 model, e.g. "JBL Tune 780NC". Case-insensitive prefix, so
+    /// a suffix some models add after the model name still matches.
+    public static func isFamily(name: String) -> Bool {
+        Set(names.values).contains { name.range(of: $0, options: [.caseInsensitive, .anchored]) != nil }
+    }
+
     /// The JBL app's colour key, which is also the key its per-model image config uses (`Beige`, `GhostBlack`, ...).
     public static func colourKey(id: Int) -> String? { colours[id] }
 
