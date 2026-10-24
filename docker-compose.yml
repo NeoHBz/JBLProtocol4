@@ -1,0 +1,8 @@
+services:
+  re:
+    build: .
+    container_name: jbl780nc-re
+    volumes:
+      - ./:/work
+    working_dir: /work
+    tty: true

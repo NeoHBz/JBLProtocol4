@@ -1,0 +1,23 @@
+# Proprietary / third-party material: never publish
+apk/
+decompiled/
+*.apk
+*.apkm
+*.xapk
+analysis/feature5_table.json
+
+# Device captures hold serials, addresses and phone identifiers
+captures/
+**/gatt.tsv
+*.log
+mac/probe-log.txt
+
+# Local environment and the author's private brief
+mac/.venv/
+handoff.md
+.env
+
+# Python / OS noise
+__pycache__/
+.pytest_cache/
+.DS_Store
