@@ -68,7 +68,7 @@ ANC button option set (0x0f85): `09` seen as the original and after each restore
 - Tag `0x0e01` is written alternately `ff` and `c9` during connect; purpose unknown.
 - A keep-alive-like write `00dd 0200 0100 0400 0200 0000` appears every ~3 s during the LE Audio reboot period (18:27:40 onward).
 - Headset physical button presses (18:36 to 18:40) were not analyzed yet. They may appear as device notifications on `0xb005`.
-- Power-off at 18:46:15 is after the pulled capture.
+- Power-off at 18:46:15 is after the first pulled capture. A second pull (`captures/bugreport2.zip`, log 18:06 to 21:03) contains it: SET tag 0x0011 = `0000`. See `notes/protocol.md`.
 
 ## Gate (Stage 1)
 - ANC on/off: **passed** (tag 0x18, `ff` vs `7f`, 5 and 4 samples, consistent with your marks).

@@ -91,6 +91,7 @@ Samples: ANC on 5, off 4, Ambient Aware 2, TalkThru 2. "Off" is expressed by wri
 | Voice Prompt language | 0x0c41 | 1 B | `01` English. The app sends 0x0c40 and 0x0c41 together in one SET (two TLVs) when toggling prompts | both for tag, other languages unverified |
 | Smart Audio & Video | 0x100f | 4 x u16 | e.g. `0001 3500 9600 ffff` | tag both. **Value layout unknown. Drops the connection.** |
 | Heartbeat | 0x0002 | no payload | SET with empty value | both |
+| Power off (code name ManualPowerOff) | 0x0011 | 2 B int | SET value `0000`: full frame `00dd020001000600110002000000` | **both.** Capture (`captures/bugreport2.zip`, 18:46:14.301, 1 sample): device pushed the tag back, acked, then dropped the link ~150 ms later. Code: `General4Control.shutDown()` sends ManualPowerOff = 0 (`DeviceInfoFeature5` id 17). **Sent from the Mac 21:08 (probe8.py): headphones switched off, button press brought them back.** Needs a button press to return. |
 | Sync time | 0x0031 | ints | sent in frames starting `01 dd` at connect | both (tag), layout unknown |
 
 ### Buttons (Gesture type)

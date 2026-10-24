@@ -118,3 +118,11 @@ Excluded on purpose: button gestures, EQ, Smart Audio & Video, LE Audio, Auracas
 - Restores: every group restored and verified; final read of all six tags == baseline.
 - Gate Stage 6: passed for all tested settings. Spatial mode numbers (music=82, movie=81, game=83) are now confirmed by device read-back (though not by listening).
 - [ ] Settings are currently at the end-of-capture state, not necessarily the user's original: voice prompts OFF (likely originally ON, English), Auto Power Off OFF (likely originally 30 min ON). Offer to set these back with captured frames (`00dd020001000a00400c0100ff410c010001`, `00dd020001000600120002000887`).
+
+## Stage 6d (direct power off), prep and result
+Script `mac/probe8.py`. Sends HostType, reads battery, 5 s countdown, then the captured frame `00dd020001000600110002000000` once.
+- Run 1 (21:07): aborted at the typed prompt (no keyboard input under the `!` prefix). Nothing was sent. The "LINK DROPPED" line was the script's own exit.
+- Run 2 (21:08:02, observed on the Mac): TX power off, then RX `00dd0300010008000000110002000000` (tag 0x0011 pushed back) and RX `00dd0200010002000000` (ack), then LINK DROPPED 21:08:16. Same order as the phone capture (state push, then ack, then drop).
+- Script crashed afterwards with a RuntimeError (asyncio.Event created outside the running loop, Python 3.9). It happened after the send and does not affect the result. Fixed in the file, not re-run.
+- [x] User confirmed: headphones switched off, and a button press brought them back.
+- Gate 6d: passed. Power off (tag 0x0011 = 0000) is verified from capture, code and a live Mac write.

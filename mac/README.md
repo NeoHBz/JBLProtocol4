@@ -16,6 +16,7 @@ macOS asks whether your terminal may use Bluetooth. Allow it. To remove everythi
 | `probe5.py` | ANC on then off | **yes** |
 | `probe6.py` | Ambient Aware, TalkThru, then all off | **yes** |
 | `probe7.py` | Voice Aware, balance, Spatial, voice prompts, Auto Power Off, restoring your baseline | **yes** |
+| `probe8.py` | direct power off (one captured frame, sent once, needs `--i-understand --power-off --now`, 5 second countdown) | **yes, switches the headphones off** |
 
 `probe5.py` to `probe7.py` change real settings. They only send frames seen in a real capture, restore the baseline, and (like probe3 and probe4) refuse to run without `--i-understand`. They have been run on one unit only. Not for factory reset, firmware update, LE Audio, Auracast, Smart Audio & Video or EQ: the encoder in `proto/` blocks those.
 
