@@ -29,6 +29,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0   # all tags, for the previous version in the release notes
+      - name: Release notes present
+        run: gh release view "$TAG" >/dev/null 2>&1 || scripts/release-notes.sh --check "$TAG"
       - name: Version from tag
         run: echo "JBL_VERSION=${TAG#v}" >> "$GITHUB_ENV"
       - name: Replay tests
@@ -49,6 +52,7 @@ jobs:
             gh release upload "$TAG" "${files[@]}" --clobber
           else
             pre=(); [[ "$TAG" == *-* ]] && pre=(--prerelease)
-            gh release create "$TAG" "${files[@]}" --title "JBL Protocol4 $TAG" --generate-notes --verify-tag \
-              --notes "Unofficial app, not affiliated with or endorsed by JBL, Harman International or Samsung. Install and Gatekeeper steps: see the README." ${pre[@]+"${pre[@]}"}
+            scripts/release-notes.sh "$TAG" build/SHA256SUMS.txt > build/release-notes.md
+            gh release create "$TAG" "${files[@]}" --title "JBL Protocol4 $TAG" --verify-tag \
+              --notes-file build/release-notes.md ${pre[@]+"${pre[@]}"}
           fi
