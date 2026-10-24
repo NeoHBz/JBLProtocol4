@@ -109,6 +109,10 @@ struct PanelView: View {
                     Text("Restore launch state").font(.system(size: 12)).frame(maxWidth: .infinity).padding(.vertical, 6)
                         .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.18)))
                 }.buttonStyle(.plain).disabled(!d.canRestore)
+                Button { NSApplication.shared.terminate(nil) } label: {
+                    Text("Quit JBL Control").font(.system(size: 12)).frame(maxWidth: .infinity).padding(.vertical, 6)
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.primary.opacity(0.18)))
+                }.buttonStyle(.plain).keyboardShortcut("q")
             }
         }
     }
