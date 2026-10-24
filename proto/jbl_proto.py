@@ -205,6 +205,14 @@ def build_set(tlvs, identifier=IDENT):
 def build_frame(command, payload, identifier=IDENT, count=1, index=0):
     if command in OFF_LIMITS_COMMANDS:
         raise PermissionError(f"command 0x{command:04x} is off limits")
+    if command == CMD_SET and count == 1:
+        try:
+            tags = [t for t, _ in parse_tlvs(payload)]
+        except Exception as e:
+            raise PermissionError(f"cannot verify the tags of this SET payload: {e}")
+        for t in tags:
+            if t in OFF_LIMITS_TAGS:
+                raise PermissionError(f"tag 0x{t:04x} is off limits")
     return Frame(identifier, command, count, index, payload).encode()
 
 

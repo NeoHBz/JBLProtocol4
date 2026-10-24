@@ -1,6 +1,10 @@
 """Stage 5f: try to get macOS to bond over LE, then repeat the approved probe3 steps.
 Sends only: standard/Fast-Pair READS (to trigger the pairing dialog), then the one captured HostType frame,
 then the same five read-only GETs. Never touches the Fast Pair write characteristics."""
+import sys as _sys
+if "--i-understand" not in _sys.argv:
+    _sys.exit("WARNING: this script WRITES one frame (HostType, a connect-time hello) to real headphones and triggers a macOS pairing dialog.\n"
+              "Read mac/README.md first, then re-run with --i-understand to proceed.")
 import asyncio, json, os, sys, time
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent

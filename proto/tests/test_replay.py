@@ -250,3 +250,13 @@ def test_coverage_report():
         print(f"  {v:4d}  {k}")
     print("Tags in SET frames the encoder does not build:", {hex(k): v for k, v in sorted(unknown_tags.items())})
     assert sum(cats.values()) == len(APP)
+
+
+def test_build_frame_refuses_off_limits_tag_in_set():
+    for tag in sorted(p.OFF_LIMITS_TAGS):
+        with pytest.raises(PermissionError):
+            p.build_frame(p.CMD_SET, p.encode_tlvs([(tag, b"\x01")]))
+    with pytest.raises(PermissionError):
+        p.build_frame(p.CMD_SET, b"\x01\x02\x03")  # not parseable as TLVs: cannot be verified
+    # a verified tag still goes through
+    assert p.build_frame(p.CMD_SET, p.encode_tlvs([(0x18, b"\x7f")])) == p.set_all_noise_off()

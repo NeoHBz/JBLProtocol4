@@ -1,5 +1,9 @@
 """Stage 5d: send ONE captured frame (SET HostType=01, byte-for-byte from the capture), then the same read-only GETs.
 Nothing else is ever written. Stops at the first unexpected reply."""
+import sys as _sys
+if "--i-understand" not in _sys.argv:
+    _sys.exit("WARNING: this script WRITES one frame (HostType, a connect-time hello) to real headphones.\n"
+              "Read mac/README.md first, then re-run with --i-understand to proceed.")
 import asyncio, sys, time
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent

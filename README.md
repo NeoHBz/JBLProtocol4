@@ -6,14 +6,14 @@ Not affiliated with or endorsed by JBL or Harman. JBL and Harman are trademarks 
 ## What is here
 - `notes/protocol.md`: the protocol spec (framing, tags, value encodings, what is off limits). Every claim carries a confidence level (observed in capture, seen in code, or both).
 - `notes/stage*-findings.md`, `notes/recon.md`, `notes/capture-script.md`: working notes per stage.
-- `proto/jbl_proto.py`: encoder/parser. It only builds and parses bytes. It refuses factory reset, firmware update and any tag not verified as writable.
+- `proto/jbl_proto.py`: encoder/parser. It only builds and parses bytes. `build_set` refuses factory reset, firmware update and any tag not verified as writable; `build_frame` refuses off-limits commands and off-limits tags in SET payloads.
 - `proto/tests/test_replay.py`: replays a real capture byte for byte.
 - `mac/`: small `bleak` scripts used on a Mac (scan, read-only probes, single-setting writes).
 - `analysis/`: helper scripts for turning a Bluetooth HCI capture into a table.
 - `Dockerfile`, `docker-compose.yml`: tooling container (jadx, apktool, tshark, python).
 
 ## What is deliberately not here
-- The app (APK) and anything decompiled from it.
+- The app (APK) and anything decompiled from it. Some notes cite paths such as `decompiled/...`, `captures/...`, `analysis/feature5_table.json` and a private brief: those files exist only on the author's machine.
 - Raw captures and the full table derived from them: they contain device serials, addresses and phone identifiers.
 - `proto/fixtures/gatt.public.tsv` is a redacted command-channel-only fixture (serial, address, clock-sync and host-name hash zeroed, timestamps replaced). It is built by `analysis/redact_fixture.py` from a private table, which you can produce for your own device with `analysis/dump_gatt.sh` and your own HCI snoop log. `proto/tests` use `gatt.tsv` if present, else the public fixture.
 
