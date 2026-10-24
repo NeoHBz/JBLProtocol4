@@ -49,5 +49,6 @@ jobs:
             gh release upload "$TAG" "${files[@]}" --clobber
           else
             pre=(); [[ "$TAG" == *-* ]] && pre=(--prerelease)
-            gh release create "$TAG" "${files[@]}" --title "JBL Protocol4 $TAG" --generate-notes --verify-tag ${pre[@]+"${pre[@]}"}
+            gh release create "$TAG" "${files[@]}" --title "JBL Protocol4 $TAG" --generate-notes --verify-tag \
+              --notes "Unofficial app, not affiliated with or endorsed by JBL, Harman International or Samsung. Install and Gatekeeper steps: see the README." ${pre[@]+"${pre[@]}"}
           fi

@@ -2,7 +2,12 @@
 
 A small macOS menu bar app for recent JBL headphones, plus the reverse-engineered spec of "Protocol4", the Bluetooth Low Energy control protocol the JBL Headphones app uses. Reverse engineered and tested on the **JBL Tune 780NC**; see [Device family](#device-family) for the other models that share it.
 
-Not affiliated with or endorsed by JBL or Harman. JBL and Harman are trademarks of their respective owners. This is independent interoperability research on the author's own device, and it comes with no warranty: use at your own risk, you are responsible for your own device.
+> [!IMPORTANT]
+> **Unofficial.** JBL Protocol4 is an independent project. It is not made, affiliated with, authorized, sponsored or endorsed by JBL, Harman International Industries, Incorporated, or Samsung Electronics. It is not the official JBL Headphones app and gets no support from them.
+>
+> JBL, Harman, Tune and the product names are trademarks of their respective owners. They are used here only to say which devices the app works with.
+>
+> This is interoperability research on the author's own device. It comes with no warranty (see [LICENSE](LICENSE)): use it at your own risk, you are responsible for your own device. Using it may affect your warranty or support from the manufacturer.
 
 ## What the app does
 Click the headphones icon in the menu bar to get:
