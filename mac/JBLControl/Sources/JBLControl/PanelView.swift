@@ -30,6 +30,8 @@ struct PanelView: View {
         .opacity(d.link == .poweredOff ? 0.6 : 1)
         .fixedSize(horizontal: false, vertical: true)
         .onGeometryChange(for: CGFloat.self, of: { $0.size.height }, action: { onHeight($0) })
+        // While the window catches up with a new height, keep the content pinned to the top instead of centred.
+        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var header: some View {

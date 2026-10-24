@@ -52,10 +52,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func open() {
         // A fresh panel each time, so "More settings" always starts collapsed.
         let host = NSHostingController(rootView: PanelView(onHeight: { [weak self] h in
-            Task { @MainActor in self?.resize(height: h) }
+            MainActor.assumeIsolated { self?.resize(height: h) }   // same frame as the layout change, no hop
         }).environmentObject(device))
         host.sizingOptions = []
-        let size = host.sizeThatFits(in: NSSize(width: 320, height: 10_000))
+        let size = host.sizeThatFits(in: NSSize(width: 320, height: 0))   // zero height: the panel answers with its natural height
         host.view.frame.size = size
 
         let background = NSVisualEffectView()
