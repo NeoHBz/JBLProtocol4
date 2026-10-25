@@ -9,6 +9,9 @@ A small macOS menu bar app for recent JBL headphones, plus the reverse-engineere
 >
 > This is interoperability research on the author's own device. It comes with no warranty (see [LICENSE](LICENSE)): use it at your own risk, you are responsible for your own device. Using it may affect your warranty or support from the manufacturer.
 
+## App Screenshot
+<img width="974" height="839" alt="Screenshot 2026-10-25 at 11 24 24 PM" src="https://github.com/user-attachments/assets/33a7a33b-84f7-43a3-83ad-5c209d5a5703" />
+
 ## What the app does
 Click the headphones icon in the menu bar to get:
 - Battery level
